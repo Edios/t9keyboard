@@ -53,7 +53,7 @@ import tkinter as tk
 from dataclasses import dataclass
 from enum import Enum
 from tkinter import ttk
-from typing import Union
+from typing import Union, List
 
 """
 /*-7894561230,+
@@ -80,6 +80,7 @@ KP_Add
 Control_L
 
 """
+
 
 #
 # events_list = []
@@ -118,51 +119,154 @@ Control_L
 # e.place(x=1, y=1)
 # e.bind('<Key>', lambda ev: add_to_event_list(ev.keysym, events_list))
 # root.mainloop()
-class Numpad(Enum):
-    NUM5="num 5"
-    2
+
+class Key:
+    values: list[str]
+
 
 @dataclass
 class LastKey:
-    click_time:int
-    value:str
+    click_time: int
+    value: str
+
+
+class Keypad(Enum):
+    One = 1
+    Two = 2
+    Three = 3
+    Four = 4
+    Five = 5
+    Six = 6
+    Seven = 7
+    Eight = 8
+    Nine = 9
+    Zero = 0
+
+    def __repr__(self):
+        return str(self.value)
+
+
+T9 = {'.': Keypad.Seven, ',': Keypad.Seven, '!': Keypad.Seven, '?': Keypad.Seven,
+      ':': Keypad.Seven, '-': Keypad.Seven, '_': Keypad.Seven, '\'': Keypad.Seven, '/': Keypad.Seven, '*': Keypad.Seven,
+      '\\': Keypad.Seven, '(': Keypad.Seven, ')': Keypad.Seven, '<': Keypad.Seven, '>': Keypad.Seven,
+      ';': Keypad.Seven, '[': Keypad.Seven, ']': Keypad.Seven,
+      'a': Keypad.Eight, 'b': Keypad.Eight, 'c': Keypad.Eight,
+      'd': Keypad.Nine, 'e': Keypad.Nine, 'f': Keypad.Nine,
+      'g': Keypad.Four, 'h': Keypad.Four, 'i': Keypad.Four,
+      'j': Keypad.Five, 'k': Keypad.Five, 'l': Keypad.Five,
+      'm': Keypad.Six, 'n': Keypad.Six, 'o': Keypad.Six,
+      'p': Keypad.One, 'q': Keypad.One, 'r': Keypad.One, 's': Keypad.One,
+      't': Keypad.Two, 'u': Keypad.Two, 'v': Keypad.Two,
+      'w': Keypad.Three, 'x': Keypad.Three, 'y': Keypad.Three, 'z': Keypad.Three,
+      '0': Keypad.Zero,
+      '1': Keypad.One, '2': Keypad.Two, '3': Keypad.Three,
+      '4': Keypad.Four, '5': Keypad.Five, '6': Keypad.Six, '7': 7,
+      '8': Keypad.Eight, '9': Keypad.Nine}
+"""
+    +-------+-------+-------+
+    |   7   |   8   |   9   |
+    |  .?!  |  ABC  |  DEF  |
+    +-------+-------+-------+
+    |   4   |   5   |   6   |
+    |  GHI  |  JKL  |  MNO  |
+    +-------+-------+-------+
+    |   1   |   2   |   3   |
+    | PQRS  |  TUV  |  WXYZ |
+    +-------+-------+-------+
+    |   *   |   0   |   #   |
+    |   ←   | SPACE |   →   |
+    +-------+-------+-------+
+"""
+
+
+@dataclass
+class KeyboardKey:
+    keypad_number: Keypad
+    letters: List[str]
+    switch_counter: int
+
+    def value(self):
+        return self.letters[self.switch_counter]
 
 
 class KeyboardActions:
-    last_key:Union[None,LastKey]
+    available_keys: List[KeyboardKey]
+    #last_key: Union[None, LastKey]
+    key_sequence: List[KeyboardKey]
 
-    def __init__(self):
-        self.last_key=None
+    # def __init__(self):
+    #     #pass
+    #     self.last_key=None
 
-    def handle_keypress(self,key):
-        if isinstance(self.last_key,LastKey) and key == self.last_key.value:
-            print("Detected double press")
-        if key=="num 5":
+    def handle_keypress(self, keypad_button: Keypad):
+        """
+        Add value to self.key_sequence list
+        Uses:
+            self.key_sequence
+            self.last_key_time
+
+        If detection time is less than 1.5 second = consider it as switch_letter
+        If detection time is over 1.5 second = consider it as add_letter
+        :param keypad_button: Keypad(Enum) Pressed Keypad Key
+        :return:
+        """
+        maped_key = self.map_key(keypad_button)
+
+        if self.is_letter_switch(keypad_button):
+            self.switch_letter(maped_key)
+        if keypad_button == "num 5":
             print("num 5 pressed")
-            self.last_key=LastKey(1,"num 5")
-        elif key=="num 0":
-            self.last_key=LastKey(1,"space")
+            self.last_key = LastKey(1, "num 5")
+        elif keypad_button == "num 0":
+            self.last_key = LastKey(1, "space")
             print("Space cleared text")
         else:
             print("Its diffrent key")
-            
+
         self.write_text()
 
     def write_text(self):
+        """
+        Writes actual self.key_sequence to the screen as letters
+        :return:
+        """
+        pass
+
+    def is_letter_switch(self, keypad_button: Keypad):
+        """
+        If detection time is less than 1.5 second and last keypad_button value is same as self.key_sequence[-1]
+        :param keypad_button:
+        :return:
+        """
+        pass
+
+    def map_key(self, key: Keypad):
+        """
+        Map key to object
+        :param key:
+        :return:
+        """
+        pass
+
+    def switch_letter(self, maped_key):
         pass
 
 
 import keyboard
 
-
-
 # def handle_key(key):
 #     print(key)
 
 
-keyboard_actions=KeyboardActions()
+keyboard_actions = KeyboardActions()
 
-#keyboard.add_hotkey(' ', print, args=['space was pressed'])
-keyboard.add_hotkey('num 5', keyboard_actions.handle_keypress, args=['num 5'])
-keyboard.add_hotkey('num 2', keyboard_actions.handle_keypress, args=['num 2'])
-keyboard.add_hotkey('num 0', keyboard_actions.handle_keypress, args=['num 0'])
+keyboard.add_hotkey('num 9', keyboard_actions.handle_keypress, args=[Keypad.Nine])
+keyboard.add_hotkey('num 8', keyboard_actions.handle_keypress, args=[Keypad.Eight])
+keyboard.add_hotkey('num 7', keyboard_actions.handle_keypress, args=[Keypad.Seven])
+keyboard.add_hotkey('num 6', keyboard_actions.handle_keypress, args=[Keypad.Six])
+keyboard.add_hotkey('num 5', keyboard_actions.handle_keypress, args=[Keypad.Five])
+keyboard.add_hotkey('num 4', keyboard_actions.handle_keypress, args=[Keypad.Four])
+keyboard.add_hotkey('num 3', keyboard_actions.handle_keypress, args=[Keypad.Three])
+keyboard.add_hotkey('num 2', keyboard_actions.handle_keypress, args=[Keypad.Two])
+keyboard.add_hotkey('num 1', keyboard_actions.handle_keypress, args=[Keypad.One])
+keyboard.add_hotkey('num 0', keyboard_actions.handle_keypress, args=[Keypad.Zero])
