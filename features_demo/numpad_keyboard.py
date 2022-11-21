@@ -150,18 +150,33 @@ T9 = {'.': Keypad.Seven, ',': Keypad.Seven, '!': Keypad.Seven, '?': Keypad.Seven
       ':': Keypad.Seven, '-': Keypad.Seven, '_': Keypad.Seven, '\'': Keypad.Seven, '/': Keypad.Seven, '*': Keypad.Seven,
       '\\': Keypad.Seven, '(': Keypad.Seven, ')': Keypad.Seven, '<': Keypad.Seven, '>': Keypad.Seven,
       ';': Keypad.Seven, '[': Keypad.Seven, ']': Keypad.Seven,
+
       'a': Keypad.Eight, 'b': Keypad.Eight, 'c': Keypad.Eight,
+
       'd': Keypad.Nine, 'e': Keypad.Nine, 'f': Keypad.Nine,
+
       'g': Keypad.Four, 'h': Keypad.Four, 'i': Keypad.Four,
+
       'j': Keypad.Five, 'k': Keypad.Five, 'l': Keypad.Five,
+
       'm': Keypad.Six, 'n': Keypad.Six, 'o': Keypad.Six,
+
       'p': Keypad.One, 'q': Keypad.One, 'r': Keypad.One, 's': Keypad.One,
+
       't': Keypad.Two, 'u': Keypad.Two, 'v': Keypad.Two,
+
       'w': Keypad.Three, 'x': Keypad.Three, 'y': Keypad.Three, 'z': Keypad.Three,
+
       '0': Keypad.Zero,
+
       '1': Keypad.One, '2': Keypad.Two, '3': Keypad.Three,
+
       '4': Keypad.Four, '5': Keypad.Five, '6': Keypad.Six, '7': 7,
-      '8': Keypad.Eight, '9': Keypad.Nine}
+
+      '8': Keypad.Eight, '9': Keypad.Nine
+      }
+
+# TODO: Print this graphics as helper
 """
     +-------+-------+-------+
     |   7   |   8   |   9   |
@@ -185,18 +200,18 @@ class KeyboardKey:
     letters: List[str]
     switch_counter: int
 
+    # TODO: Implement switch counter reset when over len(self.letters)
     def value(self):
         return self.letters[self.switch_counter]
 
 
 class KeyboardActions:
     available_keys: List[KeyboardKey]
-    #last_key: Union[None, LastKey]
+    # last_key: Union[None, LastKey]
     key_sequence: List[KeyboardKey]
 
-    # def __init__(self):
-    #     #pass
-    #     self.last_key=None
+    def __init__(self):
+        available_keys=self.get_available_keys()
 
     def handle_keypress(self, keypad_button: Keypad):
         """
@@ -240,10 +255,10 @@ class KeyboardActions:
         """
         pass
 
-    def map_key(self, key: Keypad):
+    def map_key(self, key: Keypad) -> KeyboardKey:
         """
         Map key to object
-        :param key:
+        :param key: Keypad
         :return:
         """
         pass
@@ -251,6 +266,34 @@ class KeyboardActions:
     def switch_letter(self, maped_key):
         pass
 
+    def get_available_keys(self)->List[KeyboardKey]:
+        """
+        Initialize list with values which can be used.
+
+        :return: List of available KeyboardKey objects
+        """
+        t9_values = {'.': Keypad.Seven, ',': Keypad.Seven, '!': Keypad.Seven, '?': Keypad.Seven,
+              ':': Keypad.Seven, '-': Keypad.Seven, '_': Keypad.Seven, '\'': Keypad.Seven, '/': Keypad.Seven,
+              '*': Keypad.Seven,
+              '\\': Keypad.Seven, '(': Keypad.Seven, ')': Keypad.Seven, '<': Keypad.Seven, '>': Keypad.Seven,
+              ';': Keypad.Seven, '[': Keypad.Seven, ']': Keypad.Seven,
+              'a': Keypad.Eight, 'b': Keypad.Eight, 'c': Keypad.Eight,
+              'd': Keypad.Nine, 'e': Keypad.Nine, 'f': Keypad.Nine,
+              'g': Keypad.Four, 'h': Keypad.Four, 'i': Keypad.Four,
+              'j': Keypad.Five, 'k': Keypad.Five, 'l': Keypad.Five,
+              'm': Keypad.Six, 'n': Keypad.Six, 'o': Keypad.Six,
+              'p': Keypad.One, 'q': Keypad.One, 'r': Keypad.One, 's': Keypad.One,
+              't': Keypad.Two, 'u': Keypad.Two, 'v': Keypad.Two,
+              'w': Keypad.Three, 'x': Keypad.Three, 'y': Keypad.Three, 'z': Keypad.Three,
+              '0': Keypad.Zero,
+              '1': Keypad.One, '2': Keypad.Two, '3': Keypad.Three,
+              '4': Keypad.Four, '5': Keypad.Five, '6': Keypad.Six, '7': 7,
+              '8': Keypad.Eight, '9': Keypad.Nine
+              }
+        available_keys=[]
+        for key,value in t9_values:
+            # TODO: if Value == Keypad.Value Map all keys as KeyboardKey(value,[key,key,key])
+            pass
 
 import keyboard
 
