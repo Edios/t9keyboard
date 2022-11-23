@@ -212,7 +212,7 @@ class KeyboardKey:
         Switch letter counter for getting another value of letter.
         :return: None
         """
-        if self.letter_counter < len(self.letters):
+        if self.letter_counter < len(self.letters)-1:
             self.letter_counter += 1
         else:
             self.letter_counter = 0
@@ -299,12 +299,11 @@ class KeyboardActions:
         }
         available_keys = []
         for key, values in t9_values.items():
-            # TODO: if Value == Keypad.Value Map all keys as KeyboardKey(value,[key,key,key])
             try:
                 attribute = getattr(Keypad, key)
                 available_keys.append(KeyboardKey(attribute, values))
             except AttributeError:
-                # TODO: Remove print
+                # TODO: Replace print
                 print("Could not match character with keypad ")
         return available_keys
 
@@ -316,6 +315,12 @@ import keyboard
 
 
 keyboard_actions = KeyboardActions()
+keyboard_actions.available_keys[2].switch_letter_counter()
+keyboard_actions.available_keys[2].switch_letter_counter()
+keyboard_actions.available_keys[2].switch_letter_counter()
+keyboard_actions.available_keys[2].switch_letter_counter()
+keyboard_actions.available_keys[2].value()
+
 
 keyboard.add_hotkey('num 9', keyboard_actions.handle_keypress, args=[Keypad.Nine])
 keyboard.add_hotkey('num 8', keyboard_actions.handle_keypress, args=[Keypad.Eight])
