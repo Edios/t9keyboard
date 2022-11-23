@@ -249,23 +249,19 @@ class KeyboardActions:
 
         if self.is_letter_switch(maped_key):
             maped_key.switch_letter_counter()
-        # if keypad_button == "num 5":
-        #     print("num 5 pressed")
-        #     self.last_key = LastKey(1, "num 5")
-        # elif keypad_button == "num 0":
-        #     self.last_key = LastKey(1, "space")
-        #     print("Space cleared text")
-        # else:
-        #     print("Its diffrent key")
-
+        self.key_sequence.append(maped_key)
         self.write_text()
 
     def write_text(self):
         """
         Writes actual self.key_sequence to the screen as letters
-        :return:
+        :return: None
         """
-        pass
+        if self.key_sequence:
+            print_value=""
+            for letter in self.key_sequence:
+                print_value.join(letter.value())
+            print(print_value)
 
     def is_letter_switch(self, key: KeyboardKey) -> bool:
         """
