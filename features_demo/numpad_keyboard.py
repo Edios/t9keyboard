@@ -31,6 +31,7 @@
 
 
 """
+import copy
 import time
 # Counter of pressed key
 
@@ -222,7 +223,6 @@ class KeyboardKey:
 
 class KeyboardActions:
     available_keys: List[KeyboardKey]
-    # last_key: Union[None, LastKey]
     key_sequence: List[KeyboardKey]
     key_pressed_time: float
 
@@ -230,6 +230,7 @@ class KeyboardActions:
         self.available_keys = self.get_available_keys()
         # Default value init
         self.key_pressed_time = time.time()
+        self.key_sequence = []
 
     def handle_keypress(self, keypad_button: KeypadKey):
         """
@@ -258,16 +259,16 @@ class KeyboardActions:
         :return: None
         """
         if self.key_sequence:
-            print_value=""
+            print_value = ""
             for letter in self.key_sequence:
-                print_value.join(letter.value())
+                print_value += letter.value()
             print(print_value)
 
     def is_letter_switch(self, key: KeyboardKey) -> bool:
         """
         If detection time is less than 2 second and last keypad_button value is same as self.key_sequence[-1]
         :param key:
-        :return: Bool if letter should be switched or not
+        :return: Bool if letter should be switcself.key_sequence = {list: 2} [KeyboardKey(keypad_number=5, letters=['j', 'k', 'l'], letter_counter=1), KeyboardKey(keypad_number=5, letters=['j', 'k', 'l'], letter_counter=1)]hed or not
         """
         actual_time = time.time()
         # TODO: Inversion will make it more readable?
@@ -285,7 +286,7 @@ class KeyboardActions:
         """
         for available_key in self.available_keys:
             if key == available_key.keypad_number:
-                return self.available_keys[self.available_keys.index(available_key)]
+                return copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
 
     def get_available_keys(self) -> List[KeyboardKey]:
         """
