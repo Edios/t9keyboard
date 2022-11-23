@@ -248,9 +248,11 @@ class KeyboardActions:
         # TODO: Add setter for key_pressed_time
         self.key_pressed_time = time.time()
 
+        # TODO: Fix bug with multiple keypresses - is letter switch do not work correctly
         if self.is_letter_switch(maped_key):
-            maped_key.switch_letter_counter()
-        self.key_sequence.append(maped_key)
+            self.key_sequence[-1].switch_letter_counter()
+        else:
+            self.key_sequence.append(maped_key)
         self.write_text()
 
     def write_text(self):
