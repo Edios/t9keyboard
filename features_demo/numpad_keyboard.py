@@ -1,10 +1,12 @@
 import copy
+import datetime
 import time
-#import tkinter as tk
-#from tkinter import ttk
+# import tkinter as tk
+# from tkinter import ttk
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Union, List
+
 
 class KeypadKey(Enum):
     One = 1
@@ -20,6 +22,7 @@ class KeypadKey(Enum):
 
     def __repr__(self):
         return str(self.value)
+
 
 # TODO: Print this graphics as helper
 """
@@ -44,6 +47,8 @@ class KeyboardKey:
     keypad_number: KeypadKey
     letters: List[str]
     letter_counter: int = field(default=0)
+    pressed_time: datetime = field(default_factory=datetime.datetime.now)
+
 
     def value(self) -> str:
         """
@@ -62,16 +67,19 @@ class KeyboardKey:
         else:
             self.letter_counter = 0
 
+    def refresh_timestamp(self):
+        self.pressed_time=datetime.datetime.now()
+
 
 class KeyboardActions:
     available_keys: List[KeyboardKey]
     key_sequence: List[KeyboardKey]
-    key_pressed_time: float
+    key_pressed_time: datetime
 
     def __init__(self):
         self.available_keys = self.get_available_keys()
         # Default value init
-        self.key_pressed_time = time.time()
+        #self.key_pressed_time = datetime.datetime.now()
         self.key_sequence = []
 
     def handle_keypress(self, keypad_button: KeypadKey):
@@ -87,10 +95,6 @@ class KeyboardActions:
         :return:
         """
         maped_key = self.map_key(keypad_button)
-        # TODO: Add setter for key_pressed_time
-        self.key_pressed_time = time.time()
-
-        # TODO: Fix bug with multiple keypresses - is letter switch do not work correctly
         if self.is_letter_switch(maped_key):
             self.key_sequence[-1].switch_letter_counter()
         else:
@@ -112,11 +116,12 @@ class KeyboardActions:
         """
         If detection time is less than 2 second and last keypad_button value is same as self.key_sequence[-1]
         :param key:
-        :return: Bool if letter should be switcself.key_sequence = {list: 2} [KeyboardKey(keypad_number=5, letters=['j', 'k', 'l'], letter_counter=1), KeyboardKey(keypad_number=5, letters=['j', 'k', 'l'], letter_counter=1)]hed or not
+        :return: Bool if letter should be switch
         """
-        actual_time = time.time()
         # TODO: Inversion will make it more readable?
-        if self.key_sequence and actual_time - self.key_pressed_time < 2 and \
+        #present_time = datetime.datetime.now()
+        if self.key_sequence and\
+                self.timedelta_in_seconds_between_two_dates(self.key_sequence[-1].pressed_time, key.pressed_time, 2) and \
                 key.keypad_number == self.key_sequence[-1].keypad_number:
             return True
         return False
@@ -130,7 +135,10 @@ class KeyboardActions:
         """
         for available_key in self.available_keys:
             if key == available_key.keypad_number:
-                return copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
+                new_key_object=copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
+                # Default object timestamp need to be refreshed
+                new_key_object.refresh_timestamp()
+                return new_key_object
 
     def get_available_keys(self) -> List[KeyboardKey]:
         """
@@ -158,6 +166,18 @@ class KeyboardActions:
                 # TODO: Replace print with logger
                 print("Could not match Keypad Key with t9 value")
         return available_keys
+
+    def timedelta_in_seconds_between_two_dates(self, start: datetime.datetime, stop: datetime, delta: int) -> bool:
+        """
+        Is difference between start and stop less than delta.
+        This method supports delta input as seconds
+        :param start: datetime date
+        :param stop: datetime date
+        :param delta: int delta which would be added
+        :return: Return True if time difference between start and stop is less than delta
+        """
+        elapsed_time=stop-start
+        return True if elapsed_time <= datetime.timedelta(seconds=delta) else False
 
 
 import keyboard
