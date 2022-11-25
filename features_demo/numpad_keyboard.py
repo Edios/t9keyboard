@@ -1,11 +1,8 @@
 import copy
 import datetime
-import time
-# import tkinter as tk
-# from tkinter import ttk
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Union, List
+from typing import List
 
 
 class KeypadKey(Enum):
@@ -49,7 +46,6 @@ class KeyboardKey:
     letter_counter: int = field(default=0)
     pressed_time: datetime = field(default_factory=datetime.datetime.now)
 
-
     def value(self) -> str:
         """
         Get actual chosen letter
@@ -68,7 +64,7 @@ class KeyboardKey:
             self.letter_counter = 0
 
     def refresh_timestamp(self):
-        self.pressed_time=datetime.datetime.now()
+        self.pressed_time = datetime.datetime.now()
 
 
 class KeyboardActions:
@@ -79,7 +75,6 @@ class KeyboardActions:
     def __init__(self):
         self.available_keys = self.get_available_keys()
         # Default value init
-        #self.key_pressed_time = datetime.datetime.now()
         self.key_sequence = []
 
     def handle_keypress(self, keypad_button: KeypadKey):
@@ -119,8 +114,7 @@ class KeyboardActions:
         :return: Bool if letter should be switch
         """
         # TODO: Inversion will make it more readable?
-        #present_time = datetime.datetime.now()
-        if self.key_sequence and\
+        if self.key_sequence and \
                 self.timedelta_in_seconds_between_two_dates(self.key_sequence[-1].pressed_time, key.pressed_time, 2) and \
                 key.keypad_number == self.key_sequence[-1].keypad_number:
             return True
@@ -135,12 +129,13 @@ class KeyboardActions:
         """
         for available_key in self.available_keys:
             if key == available_key.keypad_number:
-                new_key_object=copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
+                new_key_object = copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
                 # Default object timestamp need to be refreshed
                 new_key_object.refresh_timestamp()
                 return new_key_object
 
-    def get_available_keys(self) -> List[KeyboardKey]:
+    @staticmethod
+    def get_available_keys() -> List[KeyboardKey]:
         """
         Initialize list with values which can be used.
         :return: List of available KeyboardKey objects
@@ -167,7 +162,8 @@ class KeyboardActions:
                 print("Could not match Keypad Key with t9 value")
         return available_keys
 
-    def timedelta_in_seconds_between_two_dates(self, start: datetime.datetime, stop: datetime, delta: int) -> bool:
+    @staticmethod
+    def timedelta_in_seconds_between_two_dates(start: datetime.datetime, stop: datetime, delta: int) -> bool:
         """
         Is difference between start and stop less than delta.
         This method supports delta input as seconds
@@ -176,7 +172,7 @@ class KeyboardActions:
         :param delta: int delta which would be added
         :return: Return True if time difference between start and stop is less than delta
         """
-        elapsed_time=stop-start
+        elapsed_time = stop - start
         return True if elapsed_time <= datetime.timedelta(seconds=delta) else False
 
 
