@@ -107,6 +107,15 @@ class KeyboardActions:
                 print_value += letter.value()
             print(print_value)
 
+    def write_text_as_keyboard(self,letter_switch:bool):
+        """
+        Take key sequence and write it on focused input (Like normal keyboard).
+        # TODO: Change docstring
+        This method need to handle letter switch as deleting last character and replacing with new one.
+        # TODO: Already writed text need to be stored in variable?
+        :return:
+        """
+
     def is_letter_switch(self, key: KeyboardKey) -> bool:
         """
         If detection time is less than 2 second and last keypad_button value is same as self.key_sequence[-1]
