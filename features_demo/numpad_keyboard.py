@@ -1,5 +1,6 @@
 import copy
 import datetime
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
@@ -91,13 +92,15 @@ class KeyboardActions:
         maped_key = self.map_key(keypad_button)
         if self.is_letter_switch(maped_key):
             self.key_sequence[-1].switch_letter_counter()
+            self.write_switched_text_from_key(self.key_sequence[-1].value())
         else:
             self.key_sequence.append(maped_key)
-        self.write_text()
+            self.write_character_as_keyboard_input(maped_key.value())
+        self.print_text_to_screen()
 
-    def write_text(self):
+    def print_text_to_screen(self):
         """
-        Writes actual self.key_sequence to the screen as letters
+        Writes actual self.key_sequence to the screen
         :return: None
         """
         if self.key_sequence:
@@ -108,13 +111,14 @@ class KeyboardActions:
 
     def write_switched_text_from_key(self, character: str):
         """
-        Write \b for deleting last character, then use write method to replace that with switched character
+        Send backspace button for deleting last character, then use write method to replace that with switched character
         This method need to handle letter switch as deleting last character and replacing with new one.
         :param character:
         :return: None
         """
         #Delete previous character
         keyboard.send("backspace")
+        time.sleep(0.01)
         self.write_character_as_keyboard_input(character)
 
     def write_character_as_keyboard_input(self, character: str):
@@ -125,6 +129,8 @@ class KeyboardActions:
         :param character: str Character(or multiple) to write
         :return: None
         """
+        keyboard.send("backspace")
+        time.sleep(0.01)
         keyboard.write(character)
 
     def is_letter_switch(self, key: KeyboardKey) -> bool:
@@ -195,7 +201,6 @@ class KeyboardActions:
         elapsed_time = stop - start
         return True if elapsed_time <= datetime.timedelta(seconds=delta) else False
 
-
 if __name__ == '__main__':
     keyboard_actions = KeyboardActions()
     # keyboard_actions.available_keys[2].switch_letter_counter()
@@ -204,13 +209,18 @@ if __name__ == '__main__':
     # keyboard_actions.available_keys[2].switch_letter_counter()
     # keyboard_actions.available_keys[2].value()
 
-    keyboard.add_hotkey('num 9', keyboard_actions.handle_keypress, args=[KeypadKey.Nine])
-    keyboard.add_hotkey('num 8', keyboard_actions.handle_keypress, args=[KeypadKey.Eight])
-    keyboard.add_hotkey('num 7', keyboard_actions.handle_keypress, args=[KeypadKey.Seven])
-    keyboard.add_hotkey('num 6', keyboard_actions.handle_keypress, args=[KeypadKey.Six])
-    keyboard.add_hotkey('num 5', keyboard_actions.handle_keypress, args=[KeypadKey.Five])
-    keyboard.add_hotkey('num 4', keyboard_actions.handle_keypress, args=[KeypadKey.Four])
-    keyboard.add_hotkey('num 3', keyboard_actions.handle_keypress, args=[KeypadKey.Three])
-    keyboard.add_hotkey('num 2', keyboard_actions.handle_keypress, args=[KeypadKey.Two])
-    keyboard.add_hotkey('num 1', keyboard_actions.handle_keypress, args=[KeypadKey.One])
-    keyboard.add_hotkey('num 0', keyboard_actions.handle_keypress, args=[KeypadKey.Zero])
+    #time.sleep(3)
+    #keyboard_actions.write_character_as_keyboard_input("snake")
+
+    #keyboard_actions.write_switched_text_from_key("y")
+    # keyboard.add_hotkey('num 9', keyboard.write, args=["snake"])
+    keyboard.add_hotkey('num 9', keyboard_actions.handle_keypress, args=[KeypadKey.Nine],suppress=True)
+    keyboard.add_hotkey('num 8', keyboard_actions.handle_keypress, args=[KeypadKey.Eight],suppress=True)
+    keyboard.add_hotkey('num 7', keyboard_actions.handle_keypress, args=[KeypadKey.Seven],suppress=True)
+    keyboard.add_hotkey('num 6', keyboard_actions.handle_keypress, args=[KeypadKey.Six],suppress=True)
+    keyboard.add_hotkey('num 5', keyboard_actions.handle_keypress, args=[KeypadKey.Five],suppress=True)
+    keyboard.add_hotkey('num 4', keyboard_actions.handle_keypress, args=[KeypadKey.Four],suppress=True)
+    keyboard.add_hotkey('num 3', keyboard_actions.handle_keypress, args=[KeypadKey.Three],suppress=True)
+    keyboard.add_hotkey('num 2', keyboard_actions.handle_keypress, args=[KeypadKey.Two],suppress=True)
+    keyboard.add_hotkey('num 1', keyboard_actions.handle_keypress, args=[KeypadKey.One],suppress=True)
+    keyboard.add_hotkey('num 0', keyboard_actions.handle_keypress, args=[KeypadKey.Zero],suppress=True)
