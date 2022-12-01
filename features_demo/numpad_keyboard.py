@@ -3,26 +3,34 @@ import datetime
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
+from typing import List, Union
 
 import keyboard
+from keyboard import KeyboardEvent
 
 
-class KeypadKey(Enum):
-    One = 1
-    Two = 2
-    Three = 3
-    Four = 4
-    Five = 5
-    Six = 6
-    Seven = 7
-    Eight = 8
-    Nine = 9
-    Zero = 0
+class KeypadButton(Enum):
+    One = "1"
+    Two = "2"
+    Three = "3"
+    Four = "4"
+    Five = "5"
+    Six = "6"
+    Seven = "7"
+    Eight = "8"
+    Nine = "9"
+    Zero = "0"
+    # Special keys
+    Star = "*"
+    Plus = "+"
+    Dot =  "."
 
     def __repr__(self):
         return str(self.value)
 
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
 
 # TODO: Print this graphics as helper
 """
@@ -42,9 +50,21 @@ class KeypadKey(Enum):
 """
 
 
+class SpecialAction:
+    pass
+
+
 @dataclass
-class KeyboardKey:
-    keypad_number: KeypadKey
+class SpecialKey:
+    keypad_number: KeypadButton
+    action:SpecialAction
+    pressed_time: datetime = field(default_factory=datetime.datetime.now)
+
+
+
+@dataclass
+class AlphabetKey:
+    keypad_button: KeypadButton
     letters: List[str]
     letter_counter: int = field(default=0)
     switched_letter_value: bool = field(default=False)
@@ -73,17 +93,25 @@ class KeyboardKey:
         self.pressed_time = datetime.datetime.now()
 
 
-class KeyboardActions:
-    available_keys: List[KeyboardKey]
-    key_sequence: List[KeyboardKey]
+class NumpadKeyboard:
+    available_keys: List[AlphabetKey]
+    key_sequence: List[AlphabetKey]
     key_pressed_time: datetime
 
     def __init__(self):
-        self.available_keys = self.get_available_keys()
+        self.available_keys = self.get_available_alphabet_keys()
         # Default value init
         self.key_sequence = []
-
-    def handle_keypress(self, keypad_button: KeypadKey):
+    @staticmethod
+    def on_press_reaction(event: KeyboardEvent):
+        """
+        Map keyboard object to KeypadButton enum instance, then execute handle_keypress.
+        :param event: KeyboardEvent object from keyboard module
+        :return:
+        """
+        if event.is_keypad == True and KeypadButton.has_value(event.name):
+            return keyboard_actions.handle_keypress(KeypadButton(event.name))
+    def handle_keypress(self, keypad_button: KeypadButton):
         """
         # TODO: Add proper docstring
         :param keypad_button: Keypad(Enum) Pressed Keypad Key
@@ -133,7 +161,7 @@ class KeyboardActions:
         time.sleep(0.01)
         keyboard.write(character)
 
-    def is_letter_switch(self, key: KeyboardKey) -> bool:
+    def is_letter_switch(self, key: AlphabetKey) -> bool:
         """
         If detection time is less than 2 second and last keypad_button value is same as self.key_sequence[-1]
         :param key:
@@ -142,31 +170,35 @@ class KeyboardActions:
         # TODO: Inversion will make it more readable?
         if self.key_sequence and \
                 self.timedelta_in_seconds_between_two_dates(self.key_sequence[-1].pressed_time, key.pressed_time, 2) and \
-                key.keypad_number == self.key_sequence[-1].keypad_number:
+                key.keypad_button == self.key_sequence[-1].keypad_button:
             return True
         return False
 
-    def map_key(self, key: KeypadKey) -> KeyboardKey:
+    def map_key(self, key: KeypadButton) -> Union[AlphabetKey]:
         """
         Map key from input to object of from list of available keyboard buttons.
         KeyboardKey object add information about letters values which will be used to perform logic.
-        :param key: KeypadKey Enum obj which will be maped to KeyboardKey object
-        :return: KeyboardKey corresponding with KeypadKey object
+        :param key: KeypadButton Enum obj which will be maped to KeyboardKey object
+        :return: KeyboardKey corresponding with KeypadButton object
         """
-        for available_key in self.available_keys:
-            if key == available_key.keypad_number:
-                new_key_object = copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
-                # Default object timestamp need to be refreshed
-                new_key_object.refresh_timestamp()
-                return new_key_object
+        if key.value.name.isdigit():
+            for available_key in self.available_keys:
+                if key == available_key.keypad_button:
+                    new_key_object = copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
+                    # Default object timestamp need to be refreshed
+                    new_key_object.refresh_timestamp()
+                    return new_key_object
+        else:
+            #TODO: Map SpecialKey
+
 
     @staticmethod
-    def get_available_keys() -> List[KeyboardKey]:
+    def get_available_alphabet_keys() -> List[AlphabetKey]:
         """
         Initialize list with values which can be used.
         :return: List of available KeyboardKey objects
         """
-        t9_values = {
+        alphabet_keys = {
             'Seven': ['.', ',', '?', '!'],
             'Eight': ['a', 'b', 'c'],
             'Nine': ['d', 'e', 'f'],
@@ -177,12 +209,14 @@ class KeyboardActions:
             'Two': ['t', 'u', 'v'],
             'Three': ['w', 'x', 'y', 'z'],
             'Zero': [' ', '0', '\n'],
+            'Plus': ['backspace'],
+            'Dot' : ['letter_switch']
         }
         available_keys = []
-        for key, values in t9_values.items():
+        for key, values in alphabet_keys.items():
             try:
-                attribute = getattr(KeypadKey, key)
-                available_keys.append(KeyboardKey(attribute, values))
+                attribute = getattr(KeypadButton, key)
+                available_keys.append(AlphabetKey(attribute, values))
             except AttributeError:
                 # TODO: Replace print with logger
                 print("Could not match Keypad Key with t9 value")
@@ -202,25 +236,8 @@ class KeyboardActions:
         return True if elapsed_time <= datetime.timedelta(seconds=delta) else False
 
 if __name__ == '__main__':
-    keyboard_actions = KeyboardActions()
-    # keyboard_actions.available_keys[2].switch_letter_counter()
-    # keyboard_actions.available_keys[2].switch_letter_counter()
-    # keyboard_actions.available_keys[2].switch_letter_counter()
-    # keyboard_actions.available_keys[2].switch_letter_counter()
-    # keyboard_actions.available_keys[2].value()
+    keyboard_actions = NumpadKeyboard()
 
-    #time.sleep(3)
-    #keyboard_actions.write_character_as_keyboard_input("snake")
-
-    #keyboard_actions.write_switched_text_from_key("y")
-    # keyboard.add_hotkey('num 9', keyboard.write, args=["snake"])
-    keyboard.add_hotkey('num 9', keyboard_actions.handle_keypress, args=[KeypadKey.Nine],suppress=True)
-    keyboard.add_hotkey('num 8', keyboard_actions.handle_keypress, args=[KeypadKey.Eight],suppress=True)
-    keyboard.add_hotkey('num 7', keyboard_actions.handle_keypress, args=[KeypadKey.Seven],suppress=True)
-    keyboard.add_hotkey('num 6', keyboard_actions.handle_keypress, args=[KeypadKey.Six],suppress=True)
-    keyboard.add_hotkey('num 5', keyboard_actions.handle_keypress, args=[KeypadKey.Five],suppress=True)
-    keyboard.add_hotkey('num 4', keyboard_actions.handle_keypress, args=[KeypadKey.Four],suppress=True)
-    keyboard.add_hotkey('num 3', keyboard_actions.handle_keypress, args=[KeypadKey.Three],suppress=True)
-    keyboard.add_hotkey('num 2', keyboard_actions.handle_keypress, args=[KeypadKey.Two],suppress=True)
-    keyboard.add_hotkey('num 1', keyboard_actions.handle_keypress, args=[KeypadKey.One],suppress=True)
-    keyboard.add_hotkey('num 0', keyboard_actions.handle_keypress, args=[KeypadKey.Zero],suppress=True)
+    keyboard.on_press(keyboard_actions.on_press_reaction)
+    while True:
+        pass
