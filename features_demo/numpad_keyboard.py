@@ -2,35 +2,35 @@ import copy
 import datetime
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, auto
 from typing import List, Union
 
 import keyboard
 from keyboard import KeyboardEvent
 
 
-class KeypadButton(Enum):
-    One = "1"
-    Two = "2"
-    Three = "3"
-    Four = "4"
-    Five = "5"
-    Six = "6"
-    Seven = "7"
-    Eight = "8"
-    Nine = "9"
-    Zero = "0"
-    # Special keys
-    Star = "*"
-    Plus = "+"
-    Dot =  "."
-
-    def __repr__(self):
-        return str(self.value)
-
-    @classmethod
-    def has_value(cls, value):
-        return value in cls._value2member_map_
+# class KeypadButton(Enum):
+#     One = "1"
+#     Two = "2"
+#     Three = "3"
+#     Four = "4"
+#     Five = "5"
+#     Six = "6"
+#     Seven = "7"
+#     Eight = "8"
+#     Nine = "9"
+#     Zero = "0"
+#     # Special keys
+#     Star = "*"
+#     Plus = "+"
+#     Dot =  "."
+#
+#     def __repr__(self):
+#         return str(self.value)
+#
+#     @classmethod
+#     def has_value(cls, value):
+#         return value in cls._value2member_map_
 
 # TODO: Print this graphics as helper
 """
@@ -48,27 +48,42 @@ class KeypadButton(Enum):
     |   ←   | SPACE |   →   |
     +-------+-------+-------+
 """
+KEYPAD_CHARACTER_MAP = {
+            '7': ['.', ',', '?', '!'],
+            '8': ['a', 'b', 'c'],
+            '9': ['d', 'e', 'f'],
+            '4': ['g', 'h', 'i'],
+            '5': ['j', 'k', 'l'],
+            '6': ['m', 'n', 'o'],
+            '1': ['p', 'q', 'r', 's'],
+            '2': ['t', 'u', 'v'],
+            '3': ['w', 'x', 'y', 'z'],
+            '0': [' ', '0', '\n'],
+            '+': ['backspace'],
+            '-': ['switch_keyboard_mode'],
+            '.' : ['switch_letter'],
+            'enter':['enter']
+        }
 
+class KeyboardMode(Enum):
+    single_press=auto()
+    t9=auto()
 
-class SpecialAction:
-    pass
-
+class SpecialAction(Enum):
+    backspace="backspace"
+    switch_keyboard_mode= "switch_keyboard_mode"
 
 @dataclass
-class SpecialKey:
-    keypad_number: KeypadButton
-    action:SpecialAction
-    pressed_time: datetime = field(default_factory=datetime.datetime.now)
-
-
-
-@dataclass
-class AlphabetKey:
-    keypad_button: KeypadButton
+class NumpadKeys:
+    keypad_button: str
     letters: List[str]
+    is_special_key:bool = field(default=False)
     letter_counter: int = field(default=0)
     switched_letter_value: bool = field(default=False)
     pressed_time: datetime = field(default_factory=datetime.datetime.now)
+
+    def __post_init__(self):
+        self.is_special_key = True if len(self.letters) < 2 else False
 
     def value(self) -> str:
         """
@@ -94,37 +109,37 @@ class AlphabetKey:
 
 
 class NumpadKeyboard:
-    available_keys: List[AlphabetKey]
-    key_sequence: List[AlphabetKey]
+    keyboard_mode:KeyboardMode
+    available_keys: List[NumpadKeys]
+    key_sequence: List[NumpadKeys]
     key_pressed_time: datetime
 
+
     def __init__(self):
-        self.available_keys = self.get_available_alphabet_keys()
+        self.available_keys = self.get_available_keyboard_keys()
         # Default value init
         self.key_sequence = []
-    @staticmethod
-    def on_press_reaction(event: KeyboardEvent):
-        """
-        Map keyboard object to KeypadButton enum instance, then execute handle_keypress.
-        :param event: KeyboardEvent object from keyboard module
-        :return:
-        """
-        if event.is_keypad == True and KeypadButton.has_value(event.name):
-            return keyboard_actions.handle_keypress(KeypadButton(event.name))
-    def handle_keypress(self, keypad_button: KeypadButton):
+        self.keyboard_mode=KeyboardMode.single_press
+    # @staticmethod
+    # def on_press_reaction(event: KeyboardEvent):
+    #     """
+    #     Map keyboard object to KeypadButton enum instance, then execute handle_keypress.
+    #     :param event: KeyboardEvent object from keyboard module
+    #     :return:
+    #     """
+    #     if event.is_keypad == True and KeypadButton.has_value(event.name):
+    #         return keyboard_actions.handle_keypress(KeypadButton(event.name))
+    def on_press_reaction(self, keypad_button: KeyboardEvent):
         """
         # TODO: Add proper docstring
         :param keypad_button: Keypad(Enum) Pressed Keypad Key
         :return:
         """
-        maped_key = self.map_key(keypad_button)
-        if self.is_letter_switch(maped_key):
-            self.key_sequence[-1].switch_letter_counter()
-            self.write_switched_text_from_key(self.key_sequence[-1].value())
-        else:
-            self.key_sequence.append(maped_key)
-            self.write_character_as_keyboard_input(maped_key.value())
-        self.print_text_to_screen()
+        if not keypad_button.is_keypad==True:
+            return
+        if self.keyboard_mode==KeyboardMode.single_press:
+            mapped_key = self.map_key(keypad_button.name)
+            self.handle_single_press_mode(mapped_key)
 
     def print_text_to_screen(self):
         """
@@ -144,8 +159,8 @@ class NumpadKeyboard:
         :param character:
         :return: None
         """
-        #Delete previous character
-        keyboard.send("backspace")
+        # WA: Delete previous character by sending backspace
+        self.delete_last_character()
         time.sleep(0.01)
         self.write_character_as_keyboard_input(character)
 
@@ -153,15 +168,14 @@ class NumpadKeyboard:
         """
         Take key sequence and write it on focused input (Like normal keyboard).
         # TODO: Change docstring
-        # TODO: Already writed text need to be stored in variable? self.written_key_sequence
         :param character: str Character(or multiple) to write
         :return: None
         """
-        keyboard.send("backspace")
+        self.delete_last_character()
         time.sleep(0.01)
         keyboard.write(character)
 
-    def is_letter_switch(self, key: AlphabetKey) -> bool:
+    def is_letter_switch(self, key: NumpadKeys) -> bool:
         """
         If detection time is less than 2 second and last keypad_button value is same as self.key_sequence[-1]
         :param key:
@@ -174,52 +188,31 @@ class NumpadKeyboard:
             return True
         return False
 
-    def map_key(self, key: KeypadButton) -> Union[AlphabetKey]:
+    def map_key(self, key: str) -> Union[NumpadKeys]:
         """
         Map key from input to object of from list of available keyboard buttons.
         KeyboardKey object add information about letters values which will be used to perform logic.
-        :param key: KeypadButton Enum obj which will be maped to KeyboardKey object
+
+        :param key: str Value which represents pressed key
         :return: KeyboardKey corresponding with KeypadButton object
         """
-        if key.value.name.isdigit():
-            for available_key in self.available_keys:
-                if key == available_key.keypad_button:
-                    new_key_object = copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
-                    # Default object timestamp need to be refreshed
-                    new_key_object.refresh_timestamp()
-                    return new_key_object
-        else:
-            #TODO: Map SpecialKey
+        for available_key in self.available_keys:
+            if key == available_key.keypad_button:
+                new_key_object = copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
+                # Default object timestamp need to be refreshed
+                new_key_object.refresh_timestamp()
+                return new_key_object
 
 
     @staticmethod
-    def get_available_alphabet_keys() -> List[AlphabetKey]:
+    def get_available_keyboard_keys() -> List[NumpadKeys]:
         """
-        Initialize list with values which can be used.
+        Return list of NumpadKeys objects. Need dict with KEYPAD_CHARACTER_MAP.
         :return: List of available KeyboardKey objects
         """
-        alphabet_keys = {
-            'Seven': ['.', ',', '?', '!'],
-            'Eight': ['a', 'b', 'c'],
-            'Nine': ['d', 'e', 'f'],
-            'Four': ['g', 'h', 'i'],
-            'Five': ['j', 'k', 'l'],
-            'Six': ['m', 'n', 'o'],
-            'One': ['p', 'q', 'r', 's'],
-            'Two': ['t', 'u', 'v'],
-            'Three': ['w', 'x', 'y', 'z'],
-            'Zero': [' ', '0', '\n'],
-            'Plus': ['backspace'],
-            'Dot' : ['letter_switch']
-        }
         available_keys = []
-        for key, values in alphabet_keys.items():
-            try:
-                attribute = getattr(KeypadButton, key)
-                available_keys.append(AlphabetKey(attribute, values))
-            except AttributeError:
-                # TODO: Replace print with logger
-                print("Could not match Keypad Key with t9 value")
+        for key, values in KEYPAD_CHARACTER_MAP.items():
+            available_keys.append(NumpadKeys(key, values))
         return available_keys
 
     @staticmethod
@@ -235,7 +228,50 @@ class NumpadKeyboard:
         elapsed_time = stop - start
         return True if elapsed_time <= datetime.timedelta(seconds=delta) else False
 
+    def handle_single_press_mode(self, mapped_key):
+        if mapped_key.is_special_key:
+            #TODO: Handle special action
+            self.perform_special_key_action(mapped_key)
+        elif self.is_letter_switch(mapped_key):
+            self.key_sequence[-1].switch_letter_counter()
+            self.write_switched_text_from_key(self.key_sequence[-1].value())
+        else:
+            self.key_sequence.append(mapped_key)
+            self.write_character_as_keyboard_input(mapped_key.value())
+
+        self.print_text_to_screen()
+
+    def perform_special_key_action(self, mapped_key):
+        # WARNING: This requires python >3.10 (case matching method)
+        action=getattr(SpecialAction,mapped_key.value())
+        match action:
+            case SpecialAction.backspace:
+                #Need to delete plus character, then actual character
+                self.delete_last_character()
+                self.delete_last_character()
+            case SpecialAction.switch_keyboard_mode:
+                self.switch_keyboard_mode()
+
+
+    def delete_last_character(self):
+        """
+        Delete last character from input.
+        #[..]and pop last item from already written key_sequence list
+        :return:
+        """
+        keyboard.send("backspace")
+        #self.key_sequence.pop()
+
+    def switch_keyboard_mode(self):
+        #TODO: Match current keyboard mode in enum, then switch it
+        #self.keyboard_mode=
+        pass
+
+
+
 if __name__ == '__main__':
+    # TODO: Consider checking platform. Keyboard suppress is working only on windows. Workaround for Linux is to send
+    #  backspaces
     keyboard_actions = NumpadKeyboard()
 
     keyboard.on_press(keyboard_actions.on_press_reaction)
