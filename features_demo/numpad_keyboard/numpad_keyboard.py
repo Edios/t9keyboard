@@ -24,7 +24,7 @@ from keyboard import KeyboardEvent
     |   ←   | SPACE |   →   |
     +-------+-------+-------+
 """
-KEYPAD_CHARACTER_MAP = {
+numpad_keyboard_character_map = {
     '7': ['.', ',', '?', '!'],
     '8': ['a', 'b', 'c'],
     '9': ['d', 'e', 'f'],
@@ -42,7 +42,7 @@ KEYPAD_CHARACTER_MAP = {
 }
 
 
-class KeyboardMode(Enum):
+class NumpadKeyboardMode(Enum):
     single_press = auto()
     t9 = auto()
 
@@ -53,7 +53,7 @@ class SpecialAction(Enum):
 
 
 @dataclass
-class NumpadKeys:
+class NumpadKey:
     keypad_button: str
     letters: List[str]
     is_special_key: bool = field(default=False)
@@ -88,16 +88,16 @@ class NumpadKeys:
 
 
 class NumpadKeyboard:
-    keyboard_mode: KeyboardMode
-    available_keys: List[NumpadKeys]
-    key_sequence: List[NumpadKeys]
+    keyboard_mode: NumpadKeyboardMode
+    available_keys: List[NumpadKey]
+    key_sequence: List[NumpadKey]
     key_pressed_time: datetime
 
     def __init__(self):
         self.available_keys = self.get_available_keyboard_keys()
         # Default value init
         self.key_sequence = []
-        self.keyboard_mode = KeyboardMode.single_press
+        self.keyboard_mode = NumpadKeyboardMode.single_press
 
     def on_press_reaction(self, keypad_button: KeyboardEvent):
         """
@@ -107,9 +107,12 @@ class NumpadKeyboard:
         """
         if not keypad_button.is_keypad == True:
             return
-        if self.keyboard_mode == KeyboardMode.single_press:
-            mapped_key = self.map_key(keypad_button.name)
+        mapped_key = self.map_key(keypad_button.name)
+        if self.keyboard_mode == NumpadKeyboardMode.single_press:
             self.handle_single_press_mode(mapped_key)
+        if self.keyboard_mode==NumpadKeyboardMode.t9:
+            # TODO: Mapped key have too much information for t9. Refactor to base class
+            self.handle_t9_mode(mapped_key)
 
     def print_text_to_screen(self):
         """
@@ -145,7 +148,7 @@ class NumpadKeyboard:
         time.sleep(0.01)
         keyboard.write(character)
 
-    def is_letter_switch(self, key: NumpadKeys) -> bool:
+    def is_letter_switch(self, key: NumpadKey) -> bool:
         """
         If detection time is less than 2 second and last keypad_button value is same as self.key_sequence[-1]
         :param key:
@@ -158,7 +161,7 @@ class NumpadKeyboard:
             return True
         return False
 
-    def map_key(self, key: str) -> Union[NumpadKeys]:
+    def map_key(self, key: str) -> Union[NumpadKey]:
         """
         Map key from input to object of from list of available keyboard buttons.
         KeyboardKey object add information about letters values which will be used to perform logic.
@@ -174,14 +177,14 @@ class NumpadKeyboard:
                 return new_key_object
 
     @staticmethod
-    def get_available_keyboard_keys() -> List[NumpadKeys]:
+    def get_available_keyboard_keys() -> List[NumpadKey]:
         """
-        Return list of NumpadKeys objects. Need dict with KEYPAD_CHARACTER_MAP.
+        Return list of NumpadKey objects. Need dict with numpad_keyboard_character_map.
         :return: List of available KeyboardKey objects
         """
         available_keys = []
-        for key, values in KEYPAD_CHARACTER_MAP.items():
-            available_keys.append(NumpadKeys(key, values))
+        for key, values in numpad_keyboard_character_map.items():
+            available_keys.append(NumpadKey(key, values))
         return available_keys
 
     @staticmethod
@@ -233,6 +236,14 @@ class NumpadKeyboard:
     def switch_keyboard_mode(self):
         # TODO: Match current keyboard mode in enum, then switch it
         # self.keyboard_mode=
+        pass
+
+    def handle_t9_mode(self, mapped_key):
+        #Take input, perform search in t9
+        # Show current nums and available letters for each num
+        # if there are complete words: display them
+        # BONUS: Show words started with current sequence
+        # append input to self.key_sequence
         pass
 
 
