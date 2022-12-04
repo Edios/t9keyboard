@@ -213,6 +213,14 @@ class NumpadKeyboard:
 
         self.print_text_to_screen()
 
+    def handle_t9_mode(self, mapped_key):
+        #Take input, perform search in t9
+        # Show current nums and available letters for each num
+        # if there are complete words: display them
+        # BONUS: Show words started with current sequence
+        # append input to self.key_sequence
+        pass
+
     def perform_special_key_action(self, mapped_key):
         # WARNING: This requires python >3.10 (case matching method)
         action = getattr(SpecialAction, mapped_key.value())
@@ -236,14 +244,6 @@ class NumpadKeyboard:
     def switch_keyboard_mode(self):
         # TODO: Match current keyboard mode in enum, then switch it
         # self.keyboard_mode=
-        pass
-
-    def handle_t9_mode(self, mapped_key):
-        #Take input, perform search in t9
-        # Show current nums and available letters for each num
-        # if there are complete words: display them
-        # BONUS: Show words started with current sequence
-        # append input to self.key_sequence
         pass
 
 
