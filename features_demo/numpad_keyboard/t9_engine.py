@@ -16,89 +16,132 @@
 #         file_content = stream.read()
 #     words_tuple = tuple(word.strip() for word in file_content.split('\n'))
 #     return words_tuple
-#
-#
-# def my_t9(input_numbers: str) -> List[str]:
-#     system_words = get_system_words(DEFAULT_PATH_TO_WORDS_FILE)
-#     filtered_system_words_by_len = tuple(filter(
-#         lambda word: len(word) == len(input_numbers),
-#         system_words))
-#     filtered_system_words_by_input = []
-#     for word in filtered_system_words_by_len:
-#         word_corresponds = True
-#         for index, letter in enumerate(word):
-#             if letter not in PHONE_KEYS_CONFORMITY[f'{input_numbers[index]}']:
-#                 word_corresponds = False
-#                 break
-#         if word_corresponds:
-#             filtered_system_words_by_input.append(word)
-#     return filtered_system_words_by_input
+from typing import List
 
-#were
-#print(my_t9("9373"))
 
-#Step back - implement trie
-
-"""
-TrieNode
-"""
-keypad = {
-'2': ['a', 'b', 'c'],
-'3': ['d', 'e', 'f'],
-'4': ['g', 'h', 'i'],
-'5': ['j', 'k', 'l'],
-'6': ['m', 'n', 'o'],
-'7': ['p', 'q', 'r', 's'],
-'8': ['t', 'u', 'v'],
-'9': ['w', 'x', 'y', 'z']
-}
-
+# Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
 class TrieNode:
-    def __init__(self, weight=0):
+    """A node in the trie structure"""
+
+    def __init__(self, char="", word_weight=0):
+        self.char = char
+        self.word_end = False
+        self.word_weight = word_weight
         self.children = {}
-        self.weight = weight
+
 
 class Trie:
+    """The trie object"""
+
     def __init__(self):
+        """
+        The trie has at least the root node.
+        The root node does not store any character
+        """
         self.root = TrieNode()
 
-    def insert(self, word, weight):
-        curr = self.root
-        for ch in word:
-            if ch not in curr.children:
-                curr.children[ch] = TrieNode()
-            curr = curr.children[ch]
-        curr.end_of_word = True
-        curr.weight = weight
+    def insert(self, word, weight=1):
+        """Insert a word into the trie"""
+        node = self.root
 
-    def search(self, digits):
-        words = []
-        self.search_recursive(self.root, digits, "", words)
-        return words
+        # Loop through each character in the word
+        # Check if there is no child containing the character, create a new child for the current node
+        for char in word:
+            if char in node.children:
+                node = node.children[char]
+            else:
+                # If a character is not found,
+                # create a new node in the trie
+                new_node = TrieNode(char)
+                node.children[char] = new_node
+                node = new_node
 
-    def search_recursive(self, node, digits, curr_word, words):
-        if not digits:
-            if node.end_of_word:
-                words.append((curr_word, node.weight))
-            return
+        # Mark the end of a word
+        node.word_end = True
 
-        digit = digits[0]
-        for ch in keypad[digit]:
-            if ch in node.children:
-                self.search_recursive(node.children[ch], digits[1:], curr_word + ch, words)
+        # Increment the counter to indicate that we see this word once more
+        node.word_weight = weight
+
+    def dfs(self, node, prefix, store_variable: list):
+        """Depth-first traversal of the trie
+
+        Args:
+            - node: the node to start with
+            - prefix: the current prefix, for tracing a
+                word while traversing the trie
+            - store_variable: variable which will store search result data
+        """
+        if node.word_end:
+            store_variable.append((prefix + node.char, node.word_weight))
+
+        for child in node.children.values():
+            self.dfs(child, prefix + node.char, store_variable)
+
+    def query(self, x):
+        """Given an input (a prefix), retrieve all words stored in
+        the trie with that prefix, sort the words by the number of
+        times they have been inserted
+        """
+
+        node = self.root
+
+        # Check if the prefix is in the trie
+        for char in x:
+            if char in node.children:
+                node = node.children[char]
+            else:
+                # cannot find the prefix, return empty list
+                return []
+
+        # Traverse the trie to get all candidates
+
+        # this will give us a generator
+        search_result = []
+        self.dfs(node, x[:-1], search_result)
+
+        # Sort the results in reverse order and return
+        return sorted(list(search_result), key=lambda x: x[1], reverse=True)
 
 
-#Usage example
-trie = Trie()
-trie.insert("apple", 1)
-trie.insert("app", 2)
-trie.insert("banana", 3)
-trie.insert("cat", 4)
-# print(trie.search("ap"))  # ["apple", "app"]
-# print(trie.search("c"))  # ["cat"]
-# print(trie.search("ban"))  # ["banana"]
-# print(trie.search("z"))  # []
-print(trie.search("27753")) # ["apple", "app"]
-print(trie.search("228")) # ["cat"]
-print(trie.search("222663")) # ["banana"]
-print(trie.search("9999")) # []
+def get_weighed_word_dict(word_list: List[str]) -> dict:
+    """
+    Count each element in list. Increase word_weight parameter (value of dict) if word is multiplied in list.
+    :param word_list: List of words to be weighed
+    :return: Dictionary which each node contains key=node and value=word word_weight
+    """
+    weighted_words = {}
+    for word in word_list:
+        weighted_words[word] = weighted_words.get(word, 0) + 1
+    return weighted_words
+
+
+# Doubled "was" word
+trie_words = ["was", "war", "where", "what", "was"]
+weighed_words = get_weighed_word_dict(trie_words)
+
+trie_engine = Trie()
+
+for word, weight in weighed_words.items():
+    trie_engine.insert(word, weight)
+print(trie_engine.query("wa"))  # [('what', 1), ('where', 1)]
+
+
+class T9:
+    """
+    Wishfull:
+        Object contains trie with loaded weighed by number of occurances
+        As init it takes path to dict
+
+        find_words(numbers):
+            input take series of numbers
+            product all possible corresponding letters combos of numbers
+            use trie.query() with that produced letters combos
+
+            :returns
+                [SearchResult]
+                    SearchResult
+                        Word
+                        Weight
+
+
+    """
