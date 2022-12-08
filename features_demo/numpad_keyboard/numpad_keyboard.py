@@ -33,7 +33,7 @@ numpad_keyboard_character_map = {
     '6': ['m', 'n', 'o'],
     '1': ['p', 'q', 'r', 's'],
     '2': ['trie_engine', 'u', 'v'],
-    '3': ['w', 'x', 'y', 'z'],
+    '3': ['w', 'prefix', 'y', 'z'],
     '0': [' ', '0', '\n'],
     '+': ['backspace'],
     '-': ['switch_keyboard_mode'],

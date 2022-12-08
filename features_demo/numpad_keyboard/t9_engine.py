@@ -40,8 +40,14 @@ class Trie:
         """
         self.root = TrieNode()
 
-    def insert(self, word, weight=1):
-        """Insert a word into the trie"""
+    def insert(self, word, weight=0):
+        """
+        Insert word into trie.
+        Weight can be added to word, which will be used to sort result of search method.
+        :param word:
+        :param weight:
+        :return:
+        """
         node = self.root
 
         # Loop through each character in the word
@@ -77,29 +83,26 @@ class Trie:
         for child in node.children.values():
             self.dfs(child, prefix + node.char, store_variable)
 
-    def query(self, x):
-        """Given an input (a prefix), retrieve all words stored in
-        the trie with that prefix, sort the words by the number of
-        times they have been inserted
+    def search_for_words_starts_with_prefix(self, prefix: str) -> List[str]:
+        """
+        Given an input (a prefix), retrieve all words stored in
+        the trie with that prefix, sort the words by word weight.
+        :param prefix: Starting chunk of the word
+        :return: List of search result
         """
 
         node = self.root
 
-        # Check if the prefix is in the trie
-        for char in x:
+        for char in prefix:
             if char in node.children:
                 node = node.children[char]
+                # TODO: Add enumerate to for loop, condition if its a word end and char_counter==len(prefix)
+                #  -> append to full word
             else:
-                # cannot find the prefix, return empty list
                 return []
 
-        # Traverse the trie to get all candidates
-
-        # this will give us a generator
         search_result = []
-        self.dfs(node, x[:-1], search_result)
-
-        # Sort the results in reverse order and return
+        self.dfs(node, prefix[:-1], search_result)
         return sorted(list(search_result), key=lambda x: x[1], reverse=True)
 
 
@@ -123,7 +126,7 @@ trie_engine = Trie()
 
 for word, weight in weighed_words.items():
     trie_engine.insert(word, weight)
-print(trie_engine.query("wa"))  # [('what', 1), ('where', 1)]
+print(trie_engine.search_for_words_starts_with_prefix("wa"))  # [('what', 1), ('where', 1)]
 
 
 class T9:
