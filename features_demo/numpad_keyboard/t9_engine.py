@@ -16,7 +16,10 @@
 #         file_content = stream.read()
 #     words_tuple = tuple(word.strip() for word in file_content.split('\n'))
 #     return words_tuple
+from itertools import product
 from typing import List
+
+from features_demo.numpad_keyboard.numpad_keyboard import numpad_keyboard_character_map
 
 
 # Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
@@ -96,6 +99,8 @@ class Trie:
         for char in prefix:
             if char in node.children:
                 node = node.children[char]
+                # TODO: This parameter can be used to return full words only with parameter in method only_full_words:bool
+                # Otherwise, full words can be added to top of the list
                 # TODO: Add enumerate to for loop, condition if its a word end and char_counter==len(prefix)
                 #  -> append to full word
             else:
@@ -106,35 +111,33 @@ class Trie:
         return sorted(list(search_result), key=lambda x: x[1], reverse=True)
 
 
-def get_weighed_word_dict(word_list: List[str]) -> dict:
-    """
-    Count each element in list. Increase word_weight parameter (value of dict) if word is multiplied in list.
-    :param word_list: List of words to be weighed
-    :return: Dictionary which each node contains key=node and value=word word_weight
-    """
-    weighted_words = {}
-    for word in word_list:
-        weighted_words[word] = weighted_words.get(word, 0) + 1
-    return weighted_words
-
-
+# TODO: This fragment can be used as unit tests
 # Doubled "was" word
-trie_words = ["was", "war", "where", "what", "was"]
-weighed_words = get_weighed_word_dict(trie_words)
-
-trie_engine = Trie()
-
-for word, weight in weighed_words.items():
-    trie_engine.insert(word, weight)
-print(trie_engine.search_for_words_starts_with_prefix("wa"))  # [('what', 1), ('where', 1)]
+# trie_words = ["was", "war", "where", "what", "was"]
+##weighed word dict moved to T9 class
+# weighed_words = get_weighed_word_dict(trie_words)
+#
+# trie_engine = Trie()
+#
+# for word, weight in weighed_words.items():
+#     trie_engine.insert(word, weight)
+# print(trie_engine.search_for_words_starts_with_prefix("wa"))  # [('what', 1), ('where', 1)]
 
 
 class T9:
+    trie_engine: Trie
     """
     Wishfull:
         Object contains trie with loaded weighed by number of occurances
         As init it takes path to dict
+    """
 
+    def __init__(self, trie=None, word_dictionary=None):
+        self.trie_engine = trie if trie else Trie()
+        self.load_trie_word_dictionary(word_dictionary)
+
+    def find_words(self, numbers: str) -> List:
+        """
         find_words(numbers):
             input take series of numbers
             product all possible corresponding letters combos of numbers
@@ -145,6 +148,48 @@ class T9:
                     SearchResult
                         Word
                         Weight
+                        """
+        combo_list = self._product_combos(numbers)
+        found_words = []
+        for single_phrase in combo_list:
+            found_phares = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
+            if found_phares:
+                found_words.append(found_phares)
+        return found_words
+
+    def load_trie_word_dictionary(self, word_dictionary=None, weighted_words=False):
+        # TODO: Use bool for weighted words
+        # TODO: ITS testing code with no dictionary. Use dictionary for this
+        if not word_dictionary:
+            trie_words = ["was", "war", "where", "what", "was"]
+            weighed_words = self.get_weighed_word_dict(trie_words)
+            for word, weight in weighed_words.items():
+                self.trie_engine.insert(word, weight)
+
+    @staticmethod
+    def get_weighed_word_dict(word_list: List[str]) -> dict:
+        """
+        Count each element in list. Increase word_weight parameter (value of dict) if word is multiplied in list.
+        :param word_list: List of words to be weighed
+        :return: Dictionary which each node contains key=node and value=word word_weight
+        """
+        weighted_words = {}
+        for word in word_list:
+            weighted_words[word] = weighted_words.get(word, 0) + 1
+        return weighted_words
+
+    def _product_combos(self, numbers: str = "456", character_map: dict = numpad_keyboard_character_map) -> List[str]:
+        """
+        Produce all possible combinations from typed letters which corresponds to character value in dictionary.
+        :param numbers: List of input numbers
+        :param character_map: Character mapping dictionary.
+        :return: List of all combined letters
+        """
+        characters_to_combo = [character_map[number] for number in numbers]
+        return [''.join(produced_tuple) for produced_tuple in product(*characters_to_combo)]
 
 
-    """
+t9_engine = T9()
+print(t9_engine.find_words("3"))#[[('was', 2), ('war', 1), ('where', 1), ('what', 1)]]
+print(t9_engine.find_words("34"))#[[('where', 1), ('what', 1)]]
+print(t9_engine.find_words("3482"))#[[('where', 1), ('what', 1)]]
