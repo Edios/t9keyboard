@@ -1,21 +1,3 @@
-# import pathlib
-# from typing import List, Tuple
-#
-# DEFAULT_PATH_TO_WORDS_FILE = 'words.txt'
-# PHONE_KEYS_CONFORMITY = {'2': 'abc',
-#                          '3': 'def',
-#                          '4': 'ghi',
-#                          '5': 'jkl',
-#                          '6': 'mno',
-#                          '7': 'pqrs',
-#                          '8': 'tuv',
-#                          '9': 'wxyz'}
-#
-# def get_system_words(path_to_file: str) -> Tuple:
-#     with pathlib.Path(path_to_file).open(mode='r') as stream:
-#         file_content = stream.read()
-#     words_tuple = tuple(word.strip() for word in file_content.split('\n'))
-#     return words_tuple
 from itertools import product
 from typing import List
 
@@ -24,7 +6,9 @@ from features_demo.numpad_keyboard.numpad_keyboard import numpad_keyboard_charac
 
 # Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
 class TrieNode:
-    """A node in the trie structure"""
+    """
+    Single node of Trie structure
+    """
 
     def __init__(self, char="", word_weight=0):
         self.char = char
@@ -34,12 +18,14 @@ class TrieNode:
 
 
 class Trie:
-    """The trie object"""
+    """
+    Main Trie object.
+    """
 
     def __init__(self):
         """
         The trie has at least the root node.
-        The root node does not store any character
+        The root node does not store any character.
         """
         self.root = TrieNode()
 
@@ -72,13 +58,11 @@ class Trie:
         node.word_weight = weight
 
     def dfs(self, node, prefix, store_variable: list):
-        """Depth-first traversal of the trie
-
-        Args:
-            - node: the node to start with
-            - prefix: the current prefix, for tracing a
-                word while traversing the trie
-            - store_variable: variable which will store search result data
+        """
+        Depth-first traversal of the trie
+        :param node: the node to start with
+        :param prefix: the current prefix, for tracing a word while traversing the trie
+        :param store_variable: variable which will store traversal data
         """
         if node.word_end:
             store_variable.append((prefix + node.char, node.word_weight))
@@ -127,9 +111,7 @@ class Trie:
 class T9:
     trie_engine: Trie
     """
-    Wishfull:
-        Object contains trie with loaded weighed by number of occurances
-        As init it takes path to dict
+    T9 object which 
     """
 
     def __init__(self, trie=None, word_dictionary=None):
@@ -138,17 +120,10 @@ class T9:
 
     def find_words(self, numbers: str) -> List:
         """
-        find_words(numbers):
-            input take series of numbers
-            product all possible corresponding letters combos of numbers
-            use trie.query() with that produced letters combos
-
-            :returns
-                [SearchResult]
-                    SearchResult
-                        Word
-                        Weight
-                        """
+        Take series of numbers, produces all possible letters combos of them and search for word in Trie.
+        :param numbers: Input numbers with range from 1 to 9.
+        :return: List of possible words to be constructed from input numbers
+        """
         combo_list = self._product_combos(numbers)
         found_words = []
         for single_phrase in combo_list:
@@ -178,9 +153,10 @@ class T9:
             weighted_words[word] = weighted_words.get(word, 0) + 1
         return weighted_words
 
+    #TODO: Separate character_map dict with it default value
     def _product_combos(self, numbers: str = "456", character_map: dict = numpad_keyboard_character_map) -> List[str]:
         """
-        Produce all possible combinations from typed letters which corresponds to character value in dictionary.
+        Produce all possible combinations of letters from a given set of numbers.
         :param numbers: List of input numbers
         :param character_map: Character mapping dictionary.
         :return: List of all combined letters
