@@ -1,7 +1,7 @@
 from itertools import product
 from typing import List
 
-from features_demo.numpad_keyboard.numpad_keyboard import numpad_keyboard_character_map
+from t9keyboard.numpad_keyboard import numpad_keyboard_character_map
 
 
 # Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
@@ -57,30 +57,34 @@ class Trie:
         # Increment the counter to indicate that we see this word once more
         node.word_weight = weight
 
-    def dfs(self, node, prefix, store_variable: list):
+    def dfs(self, node, prefix, store_variable: list, full_words_only=False):
         """
         Depth-first traversal of the trie
         :param node: the node to start with
         :param prefix: the current prefix, for tracing a word while traversing the trie
         :param store_variable: variable which will store traversal data
+        :param full_words_only: return only list of full words
+
+        :return None (dfs result will be stored in store_variable list)
         """
         if node.word_end:
             store_variable.append((prefix + node.char, node.word_weight))
+        if not full_words_only:
+            for child in node.children.values():
+                self.dfs(child, prefix + node.char, store_variable)
 
-        for child in node.children.values():
-            self.dfs(child, prefix + node.char, store_variable)
-
-    def search_for_words_starts_with_prefix(self, prefix: str) -> List[str]:
+    def search_for_words_starts_with_prefix(self, prefix: str, full_words_only: bool = False) -> List[str]:
         """
         Given an input (a prefix), retrieve all words stored in
         the trie with that prefix, sort the words by word weight.
         :param prefix: Starting chunk of the word
+        :param full_words_only: Return only list of full words
         :return: List of search result
         """
 
         node = self.root
-
-        for char in prefix:
+        search_result = []
+        for counter, char in enumerate(prefix):
             if char in node.children:
                 node = node.children[char]
                 # TODO: This parameter can be used to return full words only with parameter in method only_full_words:bool
@@ -90,28 +94,14 @@ class Trie:
             else:
                 return []
 
-        search_result = []
-        self.dfs(node, prefix[:-1], search_result)
+        self.dfs(node, prefix[:-1], search_result, full_words_only)
         return sorted(list(search_result), key=lambda x: x[1], reverse=True)
-
-
-# TODO: This fragment can be used as unit tests
-# Doubled "was" word
-# trie_words = ["was", "war", "where", "what", "was"]
-##weighed word dict moved to T9 class
-# weighed_words = get_weighed_word_dict(trie_words)
-#
-# trie_engine = Trie()
-#
-# for word, weight in weighed_words.items():
-#     trie_engine.insert(word, weight)
-# print(trie_engine.search_for_words_starts_with_prefix("wa"))  # [('what', 1), ('where', 1)]
 
 
 class T9:
     trie_engine: Trie
     """
-    T9 object which 
+    T9 object
     """
 
     def __init__(self, trie=None, word_dictionary=None):
@@ -153,7 +143,7 @@ class T9:
             weighted_words[word] = weighted_words.get(word, 0) + 1
         return weighted_words
 
-    #TODO: Separate character_map dict with it default value
+    # TODO: Separate character_map dict with it default value
     def _product_combos(self, numbers: str = "456", character_map: dict = numpad_keyboard_character_map) -> List[str]:
         """
         Produce all possible combinations of letters from a given set of numbers.
@@ -165,7 +155,22 @@ class T9:
         return [''.join(produced_tuple) for produced_tuple in product(*characters_to_combo)]
 
 
-t9_engine = T9()
-print(t9_engine.find_words("3"))#[[('was', 2), ('war', 1), ('where', 1), ('what', 1)]]
-print(t9_engine.find_words("34"))#[[('where', 1), ('what', 1)]]
-print(t9_engine.find_words("3482"))#[[('where', 1), ('what', 1)]]
+# TODO: move this as unit tests for Trie
+
+## Doubled "was" word
+trie_words = ["was", "war", "where", "what", "was", "wa", "whey", "whe"]
+# weighed word dict moved to T9 class
+weighed_words = T9.get_weighed_word_dict(trie_words)
+
+trie_engine = Trie()
+
+for word, weight in weighed_words.items():
+    trie_engine.insert(word, weight)
+print(trie_engine.search_for_words_starts_with_prefix("whe",full_words_only=False))  # [('whe', 1), ('where', 1), ('whey', 1)]
+print(trie_engine.search_for_words_starts_with_prefix("whe",full_words_only=True))  # [('whe', 1)]
+
+# TODO: move this as unit tests for T9
+# t9_engine = T9()
+# print(t9_engine.find_words("3"))  # [[('was', 2), ('war', 1), ('where', 1), ('what', 1)]]
+# print(t9_engine.find_words("34"))  # [[('where', 1), ('what', 1)]]
+# print(t9_engine.find_words("3482"))  # [[('where', 1), ('what', 1)]]
