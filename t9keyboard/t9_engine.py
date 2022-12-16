@@ -76,26 +76,43 @@ class Trie:
     def search_for_words_starts_with_prefix(self, prefix: str, full_words_only: bool = False) -> List[str]:
         """
         Given an input (a prefix), retrieve all words stored in
-        the trie with that prefix, sort the words by word weight.
+        the trie with that prefix, sort the words by word weight but prioritize full word.
+
         :param prefix: Starting chunk of the word
         :param full_words_only: Return only list of full words
         :return: List of search result
         """
 
         node = self.root
-        search_result = []
-        for counter, char in enumerate(prefix):
+        for char in prefix:
             if char in node.children:
                 node = node.children[char]
-                # TODO: This parameter can be used to return full words only with parameter in method only_full_words:bool
-                # Otherwise, full words can be added to top of the list
-                # TODO: Add enumerate to for loop, condition if its a word end and char_counter==len(prefix)
-                #  -> append to full word
             else:
                 return []
+        full_words = []
+        self.dfs(node, prefix[:-1], full_words, True)
 
+        search_result = []
         self.dfs(node, prefix[:-1], search_result, full_words_only)
-        return sorted(list(search_result), key=lambda x: x[1], reverse=True)
+
+        return self.sort_results(full_words, search_result)
+
+    @staticmethod
+    def sort_results(priority_words: List, search_result: List) -> List:
+        """
+        Nest two list search results into one, where priority words will be on the beginning of the list.
+
+        :param priority_words: Words what need to be on beginning of the list
+        :param search_result: Rest of the search result which would be sorted by word weight
+        :return: List of nested search results with prioritized full words
+        """
+
+        if priority_words==search_result: return priority_words
+        # Remove word which exists in dfs search results
+        for word in priority_words:
+            if word in search_result: search_result.remove(word)
+        priority_words.append(sorted(search_result, key=lambda x: x[1], reverse=True))
+        return priority_words
 
 
 class T9:
@@ -166,8 +183,9 @@ trie_engine = Trie()
 
 for word, weight in weighed_words.items():
     trie_engine.insert(word, weight)
-print(trie_engine.search_for_words_starts_with_prefix("whe",full_words_only=False))  # [('whe', 1), ('where', 1), ('whey', 1)]
-print(trie_engine.search_for_words_starts_with_prefix("whe",full_words_only=True))  # [('whe', 1)]
+print(trie_engine.search_for_words_starts_with_prefix("whe",
+                                                      full_words_only=False))  # [('whe', 1), ('where', 1), ('whey', 1)]
+print(trie_engine.search_for_words_starts_with_prefix("whe", full_words_only=True))  # [('whe', 1)]
 
 # TODO: move this as unit tests for T9
 # t9_engine = T9()
