@@ -3,10 +3,14 @@ import datetime
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from pathlib import Path
 from typing import List, Union
 
 import keyboard
 from keyboard import KeyboardEvent
+
+from t9keyboard.keyboard_layout import numpad_keyboard_character_map
+from t9keyboard.t9_engine import T9
 
 # TODO: Print this graphics as helper
 """
@@ -24,22 +28,6 @@ from keyboard import KeyboardEvent
     |   ←   | SPACE |   →   |
     +-------+-------+-------+
 """
-numpad_keyboard_character_map = {
-    '7': ['.', ',', '?', '!'],
-    '8': ['a', 'b', 'c'],
-    '9': ['d', 'e', 'f'],
-    '4': ['g', 'h', 'i'],
-    '5': ['j', 'k', 'l'],
-    '6': ['m', 'n', 'o'],
-    '1': ['p', 'q', 'r', 's'],
-    '2': ['t', 'u', 'v'],
-    '3': ['w', 'x', 'y', 'z'],
-    '0': [' ', '0', '\n'],
-    '+': ['backspace'],
-    '-': ['switch_keyboard_mode'],
-    '.': ['switch_letter'],
-    'enter': ['enter']
-}
 
 
 class NumpadKeyboardMode(Enum):
@@ -92,17 +80,21 @@ class NumpadKeyboard:
     available_keys: List[NumpadKey]
     key_sequence: List[NumpadKey]
     key_pressed_time: datetime
+    t9_engine: T9
 
     def __init__(self):
         self.available_keys = self.get_available_keyboard_keys()
+        self.t9_engine = T9()
         # Default value init
         self.key_sequence = []
-        self.keyboard_mode = NumpadKeyboardMode.single_press
+        self.keyboard_mode = NumpadKeyboardMode.t9
+        self.t9_engine.load_word_dictionary_from_folder(Path("dictionary/english"))
+        self.last_trie_search = []
 
     def on_press_reaction(self, keypad_button: KeyboardEvent):
         """
-        # TODO: Add proper docstring
-        :param keypad_button: Keypad(Enum) Pressed Keypad Key
+        This method should be triggered by keyboard.on_press which produces KeyboardEvent.
+        :param keypad_button: KeyboardEvent Pressed Keypad Key
         :return:
         """
         if not keypad_button.is_keypad == True:
@@ -110,7 +102,7 @@ class NumpadKeyboard:
         mapped_key = self.map_key(keypad_button.name)
         if self.keyboard_mode == NumpadKeyboardMode.single_press:
             self.handle_single_press_mode(mapped_key)
-        if self.keyboard_mode==NumpadKeyboardMode.t9:
+        if self.keyboard_mode == NumpadKeyboardMode.t9:
             # TODO: Mapped key have too much information for t9. Refactor to base class
             self.handle_t9_mode(mapped_key)
 
@@ -137,16 +129,16 @@ class NumpadKeyboard:
         time.sleep(0.01)
         self.write_character_as_keyboard_input(character)
 
-    def write_character_as_keyboard_input(self, character: str):
+    def write_character_as_keyboard_input(self, characters: str):
         """
         Take key sequence and write it on focused input (Like normal keyboard).
         # TODO: Change docstring
-        :param character: str Character(or multiple) to write
+        :param characters: str Character(or multiple) to write
         :return: None
         """
         self.delete_last_character()
         time.sleep(0.01)
-        keyboard.write(character)
+        keyboard.write(characters)
 
     def is_letter_switch(self, key: NumpadKey) -> bool:
         """
@@ -200,7 +192,12 @@ class NumpadKeyboard:
         elapsed_time = stop - start
         return True if elapsed_time <= datetime.timedelta(seconds=delta) else False
 
-    def handle_single_press_mode(self, mapped_key):
+    def handle_single_press_mode(self, mapped_key: NumpadKey):
+        """
+        #TODO: Add method description
+        :param mapped_key:
+        :return:
+        """
         if mapped_key.is_special_key:
             # TODO: Handle special action
             self.perform_special_key_action(mapped_key)
@@ -213,20 +210,31 @@ class NumpadKeyboard:
 
         self.print_text_to_screen()
 
-    def handle_t9_mode(self, mapped_key):
-        #Take input, perform search in t9
+    def handle_t9_mode(self, mapped_key: NumpadKey):
+        # Take input, perform search in t9
         # Show current nums and available letters for each num
         # if there are complete words: display them
         # BONUS: Show words started with current sequence
         # append input to self.key_sequence
-        pass
+        # pass
+        # t9_engine.find_words("3"))
+
+        #TODO: SEPARATE NUMPAD KEYBOARD AND MODES
+        if mapped_key.keypad_button == "0":
+            # TODO: There's a bug with nesting list on search - reproduce sequence 5642
+            self.write_character_as_keyboard_input(self.last_trie_search[0][0][0])
+        self.key_sequence.append(mapped_key)
+        # TODO: its WA
+        self.last_trie_search=self.t9_engine.find_words("".join([num.keypad_button for num in self.key_sequence]))
+
+        print(self.last_trie_search)
 
     def perform_special_key_action(self, mapped_key):
         # WARNING: This requires python >3.10 (case matching method)
         action = getattr(SpecialAction, mapped_key.value())
         match action:
             case SpecialAction.backspace:
-                # Need to delete plus character, then actual character
+                # Need to delete plus character, then actual character - doubled cuz of Linux bug
                 self.delete_last_character()
                 self.delete_last_character()
             case SpecialAction.switch_keyboard_mode:

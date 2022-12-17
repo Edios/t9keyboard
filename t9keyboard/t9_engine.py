@@ -2,17 +2,18 @@ from itertools import product
 from pathlib import Path
 from typing import List
 
-from t9keyboard.numpad_keyboard import numpad_keyboard_character_map
+from t9keyboard.keyboard_layout import numpad_keyboard_character_map
 from t9keyboard.trie_engine import Trie
 
 
 class T9:
+    """
+    Object for handling all T9 actions. It also holds trie object with loaded dictionary.
+    trie_engine
+    """
     trie_engine: Trie
-    """
-    T9 object
-    """
 
-    def __init__(self, trie=None, word_dictionary_path=None):
+    def __init__(self, trie=None):
         self.trie_engine = trie if trie else Trie()
 
     def find_words(self, numbers: str) -> List:
@@ -24,9 +25,9 @@ class T9:
         combo_list = self._product_combos(numbers)
         found_words = []
         for single_phrase in combo_list:
-            found_phares = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
-            if found_phares:
-                found_words.append(found_phares)
+            found_phases = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
+            if found_phases:
+                found_words.append(found_phases)
         return found_words
 
     def load_word_dictionary_from_folder(self, directory_path: Path):
@@ -36,14 +37,14 @@ class T9:
         :return:
         """
         list_of_words = []
-        for path in self.get_files_from_directory_which_matches_pattern(directory_path,"*.txt"):
-            list_of_words.extend(self.read_words_from_file(path))
+        for path in self._get_files_from_directory_which_matches_pattern(directory_path, "*.txt"):
+            list_of_words.extend(self._read_words_from_file(path))
 
-        weighted_words = self.get_weighed_word_dictionary(list_of_words)
+        weighted_words = self._get_weighed_word_dictionary(list_of_words)
         self.load_weighted_words_into_trie_dictionary(weighted_words)
 
     @staticmethod
-    def get_weighed_word_dictionary(word_list: List[str]) -> dict:
+    def _get_weighed_word_dictionary(word_list: List[str]) -> dict:
         """
         Count each element in list. Increase word_weight parameter (value of dict) if word is multiplied in list.
         :param word_list: List of words to be weighed
@@ -66,14 +67,14 @@ class T9:
         return [''.join(produced_tuple) for produced_tuple in product(*characters_to_combo)]
 
     @staticmethod
-    def read_words_from_file(file_path: Path) -> List:
+    def _read_words_from_file(file_path: Path) -> List:
         # TODO: Could nest this check into one method
         if not file_path.is_file():
             raise FileNotFoundError(f"File path do not exists: {file_path}")
         return file_path.read_text().split("\n")
 
     @staticmethod
-    def get_files_from_directory_which_matches_pattern(directory: Path, pattern: str) -> List[Path]:
+    def _get_files_from_directory_which_matches_pattern(directory: Path, pattern: str) -> List[Path]:
         """
         Glob on directory to search for pattern.
         :param directory: Path object, need to be folder
@@ -96,8 +97,8 @@ class T9:
 
 
 # TODO: move this as unit tests for T9
-t9_engine = T9()
-t9_engine.load_word_dictionary_from_folder(Path("dictionary/english"))
-print(t9_engine.find_words("3"))  # [[('was', 2), ('war', 1), ('where', 1), ('what', 1)]]
-print(t9_engine.find_words("34"))  # [[('where', 1), ('what', 1)]]
-print(t9_engine.find_words("3482"))  # [[('where', 1), ('what', 1)]]
+# t9_engine = T9()
+# t9_engine.load_word_dictionary_from_folder(Path("dictionary/english"))
+# print(t9_engine.find_words("3"))  # [[('was', 2), ('war', 1), ('where', 1), ('what', 1)]]
+# print(t9_engine.find_words("34"))  # [[('where', 1), ('what', 1)]]
+# print(t9_engine.find_words("3482"))  # [[('where', 1), ('what', 1)]]
