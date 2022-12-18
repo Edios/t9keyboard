@@ -2,8 +2,8 @@ from itertools import product
 from pathlib import Path
 from typing import List
 
-from t9keyboard.keyboard_layout import numpad_keyboard_character_map
-from t9keyboard.trie_engine import Trie
+from t9keyboard.keyboard_keymap import numpad_keyboard_character_map
+from t9keyboard.engine.trie_engine import Trie
 
 
 class T9:

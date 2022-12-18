@@ -1,5 +1,5 @@
 import pytest
-from t9keyboard.trie_engine import Trie
+from t9keyboard.engine.trie_engine import Trie
 
 """
 Fixtures for tests/test_trie_engine.py
