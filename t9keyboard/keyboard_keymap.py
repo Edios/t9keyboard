@@ -1,4 +1,4 @@
-t9_keyboard_character_keys_map={
+numpad_character_keys_map={
     '7': ['.', ',', '?', '!'],
     '8': ['a', 'b', 'c'],
     '9': ['d', 'e', 'f'],
@@ -9,7 +9,7 @@ t9_keyboard_character_keys_map={
     '2': ['t', 'u', 'v'],
     '3': ['w', 'x', 'y', 'z']
 }
-t9_keyboard_special_keys_map={
+numpad_keyboard_special_keys_map={
     '0': ['space'],
     '+': ['backspace'],
     '-': ['switch_keyboard_mode'],

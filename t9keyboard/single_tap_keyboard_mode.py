@@ -6,7 +6,7 @@ from typing import List
 
 import keyboard
 
-from t9keyboard.keyboard_keymap import t9_keyboard_character_keys_map, t9_keyboard_special_keys_map
+from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map
 from t9keyboard.numpad_keyboard import SpecialAction
 
 
@@ -77,9 +77,9 @@ class SingleTapMode:
         :return: List of available KeyboardKey objects
         """
         available_keys = []
-        for key, values in t9_keyboard_character_keys_map.items():
+        for key, values in numpad_character_keys_map.items():
             available_keys.append(SingleTapKey(key, values))
-        for key, values in t9_keyboard_special_keys_map.items():
+        for key, values in numpad_keyboard_special_keys_map.items():
             available_keys.append(SingleTapKey(key, values, is_special_key=True))
         return available_keys
 

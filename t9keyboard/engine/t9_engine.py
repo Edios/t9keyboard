@@ -2,7 +2,7 @@ from itertools import product
 from pathlib import Path
 from typing import List
 
-from t9keyboard.keyboard_keymap import t9_keyboard_character_keys_map
+from t9keyboard.keyboard_keymap import numpad_character_keys_map
 from t9keyboard.engine.trie_engine import Trie
 
 
@@ -56,7 +56,7 @@ class T9:
         return weighted_words
 
     # TODO: Separate character_map dict with it default value
-    def _product_combos(self, numbers: str, character_map: dict = t9_keyboard_character_keys_map) -> List[str]:
+    def _product_combos(self, numbers: str, character_map: dict = numpad_character_keys_map) -> List[str]:
         """
         Produce all possible combinations of letters from a given set of numbers.
         :param numbers: List of input numbers
