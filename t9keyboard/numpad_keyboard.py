@@ -34,6 +34,7 @@ class NumpadKeyboardMode(Enum):
 class SpecialAction(Enum):
     backspace = "backspace"
     switch_keyboard_mode = "switch_keyboard_mode"
+    space="space"
 
 
 class NumpadKeyboard:
@@ -44,10 +45,10 @@ class NumpadKeyboard:
     t9_mode: T9Mode
 
     def __init__(self):
-        #Default keyboard mode
+        # Default keyboard mode
         self.keyboard_mode = NumpadKeyboardMode.t9
 
-        #TODO: move t9 engine to t9_mode.py
+        # TODO: move t9 engine to t9_mode.py
         self.t9_engine = T9()
         self.t9_engine.load_word_dictionary_from_folder(Path("dictionary/english"))
         self.last_trie_search = []
@@ -67,7 +68,7 @@ class NumpadKeyboard:
             self.single_tap_mode.handle_single_press_mode(mapped_key)
         if self.keyboard_mode == NumpadKeyboardMode.t9:
             # TODO: Mapped key have too much information for t9. Refactor to base class
-            #self.handle_t9_mode(mapped_key)
+            # self.handle_t9_mode(mapped_key)
             pass
 
     def handle_t9_mode(self, mapped_key: SingleTapKey):
@@ -85,7 +86,8 @@ class NumpadKeyboard:
             self.single_tap_mode.write_character_as_keyboard_input(self.last_trie_search[0][0][0])
         self.single_tap_mode.key_sequence.append(mapped_key)
         # TODO: its WA
-        self.last_trie_search = self.t9_engine.find_words("".join([num.keypad_button for num in self.single_tap_mode.key_sequence]))
+        self.last_trie_search = self.t9_engine.find_words(
+            "".join([num.keypad_button for num in self.single_tap_mode.key_sequence]))
 
         print(self.last_trie_search)
 

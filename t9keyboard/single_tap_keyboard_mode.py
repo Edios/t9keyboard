@@ -1,3 +1,4 @@
+import copy
 import datetime
 import time
 from dataclasses import dataclass, field
@@ -5,7 +6,7 @@ from typing import List
 
 import keyboard
 
-from t9keyboard.keyboard_keymap import numpad_keyboard_character_map
+from t9keyboard.keyboard_keymap import t9_keyboard_character_keys_map, t9_keyboard_special_keys_map
 from t9keyboard.numpad_keyboard import SpecialAction
 
 
@@ -18,8 +19,8 @@ class SingleTapKey:
     switched_letter_value: bool = field(default=False)
     pressed_time: datetime = field(default_factory=datetime.datetime.now)
 
-    def __post_init__(self):
-        self.is_special_key = True if len(self.letters) < 2 else False
+    # def __post_init__(self):
+    #     self.is_special_key = True if len(self.letters) < 2 else False
 
     def value(self) -> str:
         """
@@ -43,6 +44,7 @@ class SingleTapKey:
     def refresh_timestamp(self):
         self.pressed_time = datetime.datetime.now()
 
+
 class SingleTapMode:
     available_keys: List[SingleTapKey]
     key_sequence: List[SingleTapKey]
@@ -53,7 +55,7 @@ class SingleTapMode:
         # Default value init
         self.key_sequence = []
 
-    def map_single_tap_key(self, key: str) -> Union[SingleTapKey]:
+    def map_single_tap_key(self, key: str) -> SingleTapKey:
         """
         Map key from input to object of from list of available keyboard buttons.
         KeyboardKey object add information about letters values which will be used to perform logic.
@@ -71,12 +73,14 @@ class SingleTapMode:
     @staticmethod
     def get_available_keyboard_keys() -> List[SingleTapKey]:
         """
-        Return list of SingleTapKey objects. Need dict with numpad_keyboard_character_map.
+        Return list of SingleTapKey objects. Need dict with single_tap_keyboard_character_map.
         :return: List of available KeyboardKey objects
         """
         available_keys = []
-        for key, values in numpad_keyboard_character_map.items():
+        for key, values in t9_keyboard_character_keys_map.items():
             available_keys.append(SingleTapKey(key, values))
+        for key, values in t9_keyboard_special_keys_map.items():
+            available_keys.append(SingleTapKey(key, values, is_special_key=True))
         return available_keys
 
     @staticmethod
@@ -166,7 +170,8 @@ class SingleTapMode:
                 self.delete_last_character()
                 self.delete_last_character()
             case SpecialAction.switch_keyboard_mode:
-                self.switch_keyboard_mode()
+                # self.switch_keyboard_mode()
+                pass
 
     def delete_last_character(self):
         """
