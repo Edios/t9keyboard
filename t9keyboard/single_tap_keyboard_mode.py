@@ -6,8 +6,7 @@ from typing import List
 
 import keyboard
 
-from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map
-from t9keyboard.numpad_keyboard import SpecialAction
+from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
 
 
 @dataclass
@@ -55,7 +54,7 @@ class SingleTapMode:
         # Default value init
         self.key_sequence = []
 
-    def map_single_tap_key(self, key: str) -> SingleTapKey:
+    def map_key(self, key: str) -> SingleTapKey:
         """
         Map key from input to object of from list of available keyboard buttons.
         KeyboardKey object add information about letters values which will be used to perform logic.

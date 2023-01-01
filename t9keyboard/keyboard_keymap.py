@@ -1,3 +1,5 @@
+from enum import Enum
+
 numpad_character_keys_map={
     '7': ['.', ',', '?', '!'],
     '8': ['a', 'b', 'c'],
@@ -16,3 +18,9 @@ numpad_keyboard_special_keys_map={
     '.': ['switch_letter'],
     'enter': ['enter']
 }
+
+
+class SpecialAction(Enum):
+    backspace = "backspace"
+    switch_keyboard_mode = "switch_keyboard_mode"
+    space="space"

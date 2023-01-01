@@ -1,3 +1,5 @@
+import operator
+from dataclasses import dataclass
 from typing import List
 
 # Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
@@ -11,6 +13,15 @@ class TrieNode:
         self.word_end = False
         self.word_weight = word_weight
         self.children = {}
+
+@dataclass
+class SearchPhrase:
+    word:str
+    weight:int
+
+    def __repr__(self):
+        return self.word
+
 
 
 class Trie:
@@ -62,12 +73,12 @@ class Trie:
         :return None (dfs result will be stored in store_variable list)
         """
         if node.word_end:
-            store_variable.append((prefix + node.char, node.word_weight))
+            store_variable.append(SearchPhrase(prefix + node.char,node.word_weight))
         if not full_words_only:
             for child in node.children.values():
                 self.dfs(child, prefix + node.char, store_variable)
 
-    def search_for_words_starts_with_prefix(self, prefix: str, full_words_only: bool = False) -> List[str]:
+    def search_for_words_starts_with_prefix(self, prefix: str, full_words_only: bool = False) -> List[SearchPhrase]:
         """
         Given an input (a prefix), retrieve all words stored in
         the trie with that prefix, sort the words by word weight but prioritize full word.
@@ -92,7 +103,7 @@ class Trie:
         return self.sort_results(full_words, search_result)
 
     @staticmethod
-    def sort_results(priority_words: List, search_result: List) -> List:
+    def sort_results(priority_words: List, search_result: List[SearchPhrase]) -> List:
         """
         Nest two list search results into one, where priority words will be on the beginning of the list.
 
@@ -105,5 +116,5 @@ class Trie:
         # Remove word which exists in dfs search results
         for word in priority_words:
             if word in search_result: search_result.remove(word)
-        priority_words.append(sorted(search_result, key=lambda x: x[1], reverse=True))
+        priority_words.extend(sorted(search_result, key=operator.attrgetter('weight'), reverse=True))
         return priority_words

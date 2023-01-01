@@ -1,9 +1,17 @@
+from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
 from typing import List
 
 from t9keyboard.keyboard_keymap import numpad_character_keys_map
 from t9keyboard.engine.trie_engine import Trie
+
+
+@dataclass
+class NumpadKey:
+    keypad_button: str
+    letters: List[str]
+    is_special_key: bool = field(default=False)
 
 
 class T9:
@@ -27,7 +35,7 @@ class T9:
         for single_phrase in combo_list:
             found_phases = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
             if found_phases:
-                found_words.append(found_phases)
+                found_words.extend(found_phases)
         return found_words
 
     def load_word_dictionary_from_folder(self, directory_path: Path):
@@ -86,7 +94,7 @@ class T9:
             raise FileNotFoundError(f"File path do not exists: {directory}")
         return list(directory.glob(pattern))
 
-    def load_weighted_words_into_trie_dictionary(self, weighted_words:dict):
+    def load_weighted_words_into_trie_dictionary(self, weighted_words: dict):
         """
         Add every dictionary item to Trie tree.
         :param weighted_words: Dictionary which each node contains key=node and value=word word_weight
@@ -95,6 +103,8 @@ class T9:
         for word, weight in weighted_words.items():
             self.trie_engine.insert(word, weight)
 
+    def map_key(self, key: str):
+        pass
 
 # TODO: move this as unit tests for T9
 # t9_engine = T9()
