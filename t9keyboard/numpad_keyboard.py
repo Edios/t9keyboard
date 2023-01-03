@@ -4,30 +4,12 @@ from pathlib import Path
 import keyboard
 from keyboard import KeyboardEvent
 
-from t9keyboard.engine.t9_engine import T9, NumpadKey
-from t9keyboard.single_tap_keyboard_mode import SingleTapKey, SingleTapMode
+from t9keyboard.engine.t9_engine import T9
+from t9keyboard.single_tap_keyboard_mode import SingleTapMode
 from t9keyboard.t9_mode import T9Mode
 
 
 # TODO: Print this graphics as helper
-def print_keyboard_layout_helper():
-    print(
-        """
-        +-------+-------+-------+
-        |   7   |   8   |   9   |
-        |  .?!  |  ABC  |  DEF  |
-        +-------+-------+-------+
-        |   4   |   5   |   6   |
-        |  GHI  |  JKL  |  MNO  |
-        +-------+-------+-------+
-        |   1   |   2   |   3   |
-        | PQRS  |  TUV  |  WXYZ |
-        +-------+-------+-------+
-        |   *   |   0   |   #   |
-        |   ←   | SPACE |   →   |
-        +-------+-------+-------+
-        """
-    )
 
 
 class NumpadKeyboardMode(Enum):
@@ -70,28 +52,10 @@ class NumpadKeyboard:
             # TODO: Mapped key have too much information for t9. Refactor to base class
             # mapped_key=self.t9_engine.map_key(keypad_button.name)
             mapped_key = self.t9_engine.map_key(keypad_button.name)
-            self.handle_t9_mode(mapped_key)
+            self.t9_engine.handle_t9_mode(mapped_key)
             pass
 
-    def handle_t9_mode(self, mapped_key: NumpadKey):
-        # Take input, perform search in t9
-        # Show current nums and available letters for each num
-        # if there are complete words: display them
-        # BONUS: Show words started with current sequence
-        # append input to self.key_sequence
-        # pass
-        # t9_engine.find_words("3"))
 
-        if mapped_key.keypad_button == "0":
-            self.single_tap_mode.write_character_as_keyboard_input(self.last_trie_search[0].word)
-            return
-        print_keyboard_layout_helper()
-        self.t9_engine.key_sequence.append(mapped_key)
-        # TODO: its WA
-        self.last_trie_search = self.t9_engine.find_words(
-            "".join([num.keypad_button for num in self.single_tap_mode.key_sequence]))
-
-        print(self.last_trie_search)
 
     def switch_keyboard_mode(self):
         # TODO: Match current keyboard mode in enum, then switch it

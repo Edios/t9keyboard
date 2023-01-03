@@ -1,10 +1,14 @@
+import time
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
 from typing import List
 
-from t9keyboard.keyboard_keymap import numpad_character_keys_map
-from t9keyboard.engine.trie_engine import Trie
+import keyboard
+
+from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map
+from t9keyboard.engine.trie_engine import Trie, SearchPhrase
+from t9keyboard.display.display import print_keyboard_layout_helper
 
 
 @dataclass
@@ -20,8 +24,14 @@ class T9:
     trie_engine
     """
     trie_engine: Trie
+    last_trie_search: List[SearchPhrase]
+    key_sequence: List[NumpadKey]
 
     def __init__(self, trie=None):
+        self.text_written = "Already written text: "
+        self.last_trie_search = []
+        self.key_sequence = []
+        self.available_keys = self.get_available_keyboard_keys()
         self.trie_engine = trie if trie else Trie()
 
     def find_words(self, numbers: str) -> List:
@@ -103,8 +113,78 @@ class T9:
         for word, weight in weighted_words.items():
             self.trie_engine.insert(word, weight)
 
-    def map_key(self, key: str):
+    # TODO: This method can be unified with single tap mode one
+    @staticmethod
+    def get_available_keyboard_keys() -> List[NumpadKey]:
+        """
+        Return list of NumpadKey objects. Need dict with single_tap_keyboard_character_map.
+        :return: List of available KeyboardKey objects
+        """
+        available_keys = []
+        for key, values in numpad_character_keys_map.items():
+            available_keys.append(NumpadKey(key, values))
+        for key, values in numpad_keyboard_special_keys_map.items():
+            available_keys.append(NumpadKey(key, values, is_special_key=True))
+        return available_keys
+
+    def map_key(self, key: str) -> NumpadKey:
+        """
+        Map key from input to object of from list of available keyboard buttons.
+        NumpadKey object add information about letters values which will be used to perform logic.
+        :param key: str Value which represents pressed key
+        :return: Matching NumpadKey from available keys
+        """
+        for index, available_key in enumerate(self.available_keys):
+            if key == available_key.keypad_button:
+                new_key_object = self.available_keys[index]
+                return new_key_object
+        raise Exception(f"Could not find {key} in available_keys.")
+
+    def perform_special_key_action(self, mapped_key):
+        # WARNING: This requires python >3.10 (case matching method)
+        # action = getattr(SpecialAction, mapped_key.value())
+        # match action:
+        #     case SpecialAction.backspace:
+        #         # Need to delete plus character, then actual character - doubled cuz of Linux bug
+        #         self.delete_last_character()
+        #         self.delete_last_character()
+        #     case SpecialAction.switch_keyboard_mode:
+        #         # self.switch_keyboard_mode()
         pass
+
+    def write_character_as_keyboard_input(self, characters: str):
+        """
+        Write passed character as keyboard input.
+        :param characters: String character (or multiple) to write
+        :return: None
+        """
+        time.sleep(0.01)
+        keyboard.write(characters)
+
+    def handle_t9_mode(self, mapped_key: NumpadKey):
+        # Take input, perform search in t9
+        # Show current nums and available letters for each num
+        # if there are complete words: display them
+        # BONUS: Show words started with current sequence
+        # append input to self.key_sequence
+        # pass
+        # t9_engine.find_words("3"))
+
+        if mapped_key.keypad_button == "0":
+            self.write_character_as_keyboard_input(self.last_trie_search[0].word)
+            # self.write_character_as_keyboard_input(self.last_trie_search[0].word)
+            self.text_written += " " + self.last_trie_search[0].word
+            print(self.text_written)
+            self.key_sequence.clear()
+            self.last_trie_search.clear()
+            return
+        print_keyboard_layout_helper()
+        self.key_sequence.append(mapped_key)
+        # TODO: its WA
+        self.last_trie_search = self.find_words(
+            "".join([num.keypad_button for num in self.key_sequence]))
+
+        print(self.last_trie_search)
 
 # TODO: move this as unit tests for T9
 # t9_engine = T9()

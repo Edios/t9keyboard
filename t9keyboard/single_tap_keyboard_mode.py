@@ -60,14 +60,15 @@ class SingleTapMode:
         KeyboardKey object add information about letters values which will be used to perform logic.
 
         :param key: str Value which represents pressed key
-        :return: KeyboardKey corresponding with KeypadButton object
+        :return: Matching SingleTapKey from available keys
         """
-        for available_key in self.available_keys:
+        for index,available_key in enumerate(self.available_keys):
             if key == available_key.keypad_button:
-                new_key_object = copy.deepcopy(self.available_keys[self.available_keys.index(available_key)])
+                new_key_object = copy.deepcopy(self.available_keys[index])
                 # Default object timestamp need to be refreshed
                 new_key_object.refresh_timestamp()
                 return new_key_object
+        raise Exception(f"Could not find {key} in available_keys.")
 
     @staticmethod
     def get_available_keyboard_keys() -> List[SingleTapKey]:
@@ -138,9 +139,8 @@ class SingleTapMode:
 
     def write_character_as_keyboard_input(self, characters: str):
         """
-        Take key sequence and write it on focused input (Like normal keyboard).
-        # TODO: Change docstring
-        :param characters: str Character(or multiple) to write
+        Write passed character as keyboard input.
+        :param characters: String character (or multiple) to write
         :return: None
         """
         self.delete_last_character()
