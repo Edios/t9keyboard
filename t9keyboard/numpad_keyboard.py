@@ -4,7 +4,7 @@ from pathlib import Path
 import keyboard
 from keyboard import KeyboardEvent
 
-from t9keyboard.engine.t9_engine import T9
+from t9keyboard.t9_mode import T9Mode
 from t9keyboard.single_tap_keyboard_mode import SingleTapMode
 from t9keyboard.t9_mode import T9Mode
 
@@ -19,7 +19,6 @@ class NumpadKeyboardMode(Enum):
 
 class NumpadKeyboard:
     keyboard_mode: NumpadKeyboardMode
-    t9_engine: T9
 
     single_tap_mode: SingleTapMode
     t9_mode: T9Mode
@@ -28,8 +27,8 @@ class NumpadKeyboard:
         # Default keyboard mode
         self.keyboard_mode = NumpadKeyboardMode.t9
         # TODO: move t9 engine to t9_mode.py
-        self.t9_engine = T9()
-        self.t9_engine.load_word_dictionary_from_folder(Path("dictionary/english"))
+        self.t9_mode = T9Mode()
+        self.t9_mode.load_word_dictionary_from_folder(Path("dictionary/english"))
         self.last_trie_search = []
 
         # load single tap mode
@@ -50,9 +49,9 @@ class NumpadKeyboard:
             self.single_tap_mode.handle_single_press_mode(mapped_key)
         if self.keyboard_mode == NumpadKeyboardMode.t9:
             # TODO: Mapped key have too much information for t9. Refactor to base class
-            # mapped_key=self.t9_engine.map_key(keypad_button.name)
-            mapped_key = self.t9_engine.map_key(keypad_button.name)
-            self.t9_engine.handle_t9_mode(mapped_key)
+            # mapped_key=self.t9_mode.map_key(keypad_button.name)
+            mapped_key = self.t9_mode.map_key(keypad_button.name)
+            self.t9_mode.handle_t9_mode(mapped_key)
             pass
 
 

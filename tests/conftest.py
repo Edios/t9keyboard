@@ -19,7 +19,7 @@ def word_preloaded_trie(empty_trie):
 
 @pytest.fixture
 def weighted_word_preloaded_trie(empty_trie):
-    # Could use T9 method for weighting, but it would not be unit testing then
+    # Could use T9Mode method for weighting, but it would not be unit testing then
     wha_combo = [("whatever", 4), ("wham", 3), ("whats", 2), ("what", 0)]
     for single_word, weight in wha_combo:
         empty_trie.insert(single_word, weight)
