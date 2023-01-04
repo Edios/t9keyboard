@@ -1,6 +1,7 @@
 import operator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
+
 
 # Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
 class TrieNode:
@@ -14,14 +15,15 @@ class TrieNode:
         self.word_weight = word_weight
         self.children = {}
 
+
 @dataclass
 class SearchPhrase:
-    word:str
-    weight:int
+    word: str
+    weight: int
+    matching_search_lenght: bool = field(default=False)
 
     def __repr__(self):
         return self.word
-
 
 
 class Trie:
@@ -70,10 +72,11 @@ class Trie:
         :param store_variable: variable which will store traversal data
         :param full_words_only: return only list of full words
 
-        :return None (dfs result will be stored in store_variable list)
+        :return Dfs result will be stored in store_variable. It will contain SearchPhrase objects.
         """
         if node.word_end:
-            store_variable.append(SearchPhrase(prefix + node.char,node.word_weight))
+            store_variable.append(
+                SearchPhrase(prefix + node.char, node.word_weight, True if full_words_only else False))
         if not full_words_only:
             for child in node.children.values():
                 self.dfs(child, prefix + node.char, store_variable)
@@ -95,6 +98,7 @@ class Trie:
             else:
                 return []
         full_words = []
+        # Get list of full words to prioritize them in sort method
         self.dfs(node, prefix[:-1], full_words, True)
 
         search_result = []
@@ -103,7 +107,7 @@ class Trie:
         return self.sort_results(full_words, search_result)
 
     @staticmethod
-    def sort_results(priority_words: List, search_result: List[SearchPhrase]) -> List:
+    def sort_results(priority_words: List[SearchPhrase], search_result: List[SearchPhrase]) -> List:
         """
         Nest two list search results into one, where priority words will be on the beginning of the list.
 
@@ -112,7 +116,7 @@ class Trie:
         :return: List of nested search results with prioritized full words
         """
 
-        if priority_words==search_result: return priority_words
+        if priority_words == search_result: return priority_words
         # Remove word which exists in dfs search results
         for word in priority_words:
             if word in search_result: search_result.remove(word)

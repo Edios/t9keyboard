@@ -27,12 +27,18 @@ class T9Mode:
     last_trie_search: List[SearchPhrase]
     key_sequence: List[NumpadKey]
 
-    def __init__(self, trie=None):
-        self.text_written = "Already written text: "
+    def __init__(self, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
+        # Initialize trie engine - use default one if not given
+        self.trie_engine = trie if trie else Trie()
+        # Load dictionary - use default one if not given
+        self.load_word_dictionary_from_folder(custom_dictionary)
+        # Initialize default lists
         self.last_trie_search = []
         self.key_sequence = []
+        # Get available numpad keyboard keys
         self.available_keys = self.get_available_keyboard_keys()
-        self.trie_engine = trie if trie else Trie()
+        # TODO: Find better implementation for storing written text
+        self.text_written = "Already written text: "
 
     def find_words(self, numbers: str) -> List:
         """
