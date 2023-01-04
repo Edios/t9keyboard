@@ -13,7 +13,7 @@ from t9keyboard.t9_mode import T9Mode
 
 
 class NumpadKeyboardMode(Enum):
-    single_press = auto()
+    single_tap = auto()
     t9 = auto()
 
 
@@ -26,10 +26,7 @@ class NumpadKeyboard:
     def __init__(self):
         # Default keyboard mode
         self.keyboard_mode = NumpadKeyboardMode.t9
-        # TODO: move t9 engine to t9_mode.py
         self.t9_mode = T9Mode()
-        self.t9_mode.load_word_dictionary_from_folder(Path("dictionary/english"))
-        self.last_trie_search = []
 
         # load single tap mode
         self.single_tap_mode = SingleTapMode()
@@ -38,28 +35,28 @@ class NumpadKeyboard:
         """
         This method should be triggered by keyboard.on_press which produces KeyboardEvent.
         :param keypad_button: KeyboardEvent Pressed Keypad Key
-        :return:
+        :return: None
         """
         if not keypad_button.is_keypad == True:
             return
-        # TODO: Map key should map key for mode
 
-        if self.keyboard_mode == NumpadKeyboardMode.single_press:
+        if self.keyboard_mode == NumpadKeyboardMode.single_tap:
             mapped_key = self.single_tap_mode.map_key(keypad_button.name)
             self.single_tap_mode.handle_single_press_mode(mapped_key)
         if self.keyboard_mode == NumpadKeyboardMode.t9:
-            # TODO: Mapped key have too much information for t9. Refactor to base class
-            # mapped_key=self.t9_mode.map_key(keypad_button.name)
             mapped_key = self.t9_mode.map_key(keypad_button.name)
             self.t9_mode.handle_t9_mode(mapped_key)
-            pass
-
-
 
     def switch_keyboard_mode(self):
-        # TODO: Match current keyboard mode in enum, then switch it
-        # self.keyboard_mode=
-        pass
+        """
+        Based on current value of keyboard mode change it to one which is not set.
+        :return: None
+        """
+        match self.keyboard_mode:
+            case NumpadKeyboardMode.t9:
+                self.keyboard_mode = NumpadKeyboardMode.single_tap
+            case NumpadKeyboardMode.single_tap:
+                self.keyboard_mode = NumpadKeyboardMode.t9
 
 
 if __name__ == '__main__':
