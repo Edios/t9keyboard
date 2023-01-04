@@ -20,7 +20,12 @@ class TrieNode:
 class SearchPhrase:
     word: str
     weight: int
-    matching_search_lenght: bool = field(default=False)
+    exact_search_word: bool = field(default=False)
+
+    def __post_init__(self):
+        # Add +1 word weight if dfs search marked it as exact_search_word
+        if self.exact_search_word:
+            self.weight += 1
 
     def __repr__(self):
         return self.word
@@ -107,7 +112,7 @@ class Trie:
         return self.sort_results(full_words, search_result)
 
     @staticmethod
-    def sort_results(priority_words: List[SearchPhrase], search_result: List[SearchPhrase]) -> List:
+    def sort_results(priority_words: List[SearchPhrase], search_result: List[SearchPhrase]) -> List[SearchPhrase]:
         """
         Nest two list search results into one, where priority words will be on the beginning of the list.
 
@@ -120,5 +125,5 @@ class Trie:
         # Remove word which exists in dfs search results
         for word in priority_words:
             if word in search_result: search_result.remove(word)
-        priority_words.extend(sorted(search_result, key=operator.attrgetter('weight'), reverse=True))
-        return priority_words
+        priority_words.extend(search_result)
+        return sorted(priority_words, key=operator.attrgetter('weight'), reverse=True)

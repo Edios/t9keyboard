@@ -1,8 +1,9 @@
+import operator
 import time
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
-from typing import List
+from typing import List, Type
 
 import keyboard
 
@@ -16,6 +17,29 @@ class NumpadKey:
     keypad_button: str
     letters: List[str]
     is_special_key: bool = field(default=False)
+
+
+@dataclass
+class SearchResults:
+    search_phrases: List[SearchPhrase]
+    phrase_counter: int = field(default=0)
+
+    def sort(self):
+        """
+        Sort search_phrases by theirs weight
+        :return:
+        """
+        self.search_phrases = sorted(self.search_phrases, key=operator.attrgetter('weight'), reverse=True)
+
+    def get_results(self):
+        # Get search results
+        pass
+
+    def set_maximum_phrases_number(self):
+        pass
+
+    def get_maximum_phrases_number(self):
+        pass
 
 
 class T9Mode:
@@ -40,18 +64,18 @@ class T9Mode:
         # TODO: Find better implementation for storing written text
         self.text_written = "Already written text: "
 
-    def find_words(self, numbers: str) -> List:
+    def find_words(self, numbers: str) -> Type[SearchResults]:
         """
         Take series of numbers, produces all possible letters combos of them and search for word in Trie.
         :param numbers: Input numbers with range from 1 to 9.
         :return: List of possible words to be constructed from input numbers
         """
         combo_list = self._product_combos(numbers)
-        found_words = []
+        found_words = SearchResults
         for single_phrase in combo_list:
             found_phases = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
             if found_phases:
-                found_words.extend(found_phases)
+                found_words.search_phrases.extend(found_phases)
         return found_words
 
     def load_word_dictionary_from_folder(self, directory_path: Path):
