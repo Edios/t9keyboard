@@ -21,8 +21,31 @@ class NumpadKey:
 
 @dataclass
 class SearchResults:
-    search_phrases: List[SearchPhrase]
     phrase_counter: int = field(default=0)
+    phrase_counter_limit: int = field(default=5)
+    search_phrases: List[SearchPhrase] = field(default_factory=lambda: [])
+
+    def get_current_chosen_phrase(self) -> SearchPhrase:
+        """
+        Get search phrase from search_phrases list.
+        It will return 'n' element from list where 'n' is phrase_counter
+        :return: SearchPhrase
+        """
+        return self.get_phrase_from_search_results(self.phrase_counter)
+
+    def get_phrase_from_search_results(self, position_in_list: int) -> SearchPhrase:
+        """
+        Get search phrase from search_phrases list.
+        :param position_in_list: Position of item in search_phrases
+        :return:
+        """
+        return self.search_phrases[position_in_list]
+
+    def increase_phrase_counter(self):
+        if self.phrase_counter < self.phrase_counter_limit:
+            self.phrase_counter += 1
+        else:
+            self.phrase_counter = 0
 
     def sort(self):
         """
@@ -31,15 +54,12 @@ class SearchResults:
         """
         self.search_phrases = sorted(self.search_phrases, key=operator.attrgetter('weight'), reverse=True)
 
-    def get_results(self):
-        # Get search results
-        pass
-
-    def set_maximum_phrases_number(self):
-        pass
-
-    def get_maximum_phrases_number(self):
-        pass
+    def set_phrase_counter_limit(self, new_counter_limit: int):
+        """
+        Setter for phrase_counter_limit.
+        :param new_counter_limit: Value which will be set as new phrase_counter_limit
+        """
+        self.phrase_counter_limit = new_counter_limit
 
 
 class T9Mode:
@@ -48,7 +68,7 @@ class T9Mode:
     trie_engine
     """
     trie_engine: Trie
-    last_trie_search: List[SearchPhrase]
+    last_trie_search: SearchResults
     key_sequence: List[NumpadKey]
 
     def __init__(self, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
@@ -57,21 +77,21 @@ class T9Mode:
         # Load dictionary - use default one if not given
         self.load_word_dictionary_from_folder(custom_dictionary)
         # Initialize default lists
-        self.last_trie_search = []
+        #self.last_trie_search = []
         self.key_sequence = []
         # Get available numpad keyboard keys
         self.available_keys = self.get_available_keyboard_keys()
         # TODO: Find better implementation for storing written text
         self.text_written = "Already written text: "
 
-    def find_words(self, numbers: str) -> Type[SearchResults]:
+    def find_words(self, numbers: str) -> SearchResults:
         """
         Take series of numbers, produces all possible letters combos of them and search for word in Trie.
         :param numbers: Input numbers with range from 1 to 9.
         :return: List of possible words to be constructed from input numbers
         """
         combo_list = self._product_combos(numbers)
-        found_words = SearchResults
+        found_words = SearchResults()
         for single_phrase in combo_list:
             found_phases = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
             if found_phases:
@@ -206,7 +226,7 @@ class T9Mode:
             self.text_written += " " + self.last_trie_search[0].word
             print(self.text_written)
             self.key_sequence.clear()
-            self.last_trie_search.clear()
+            # self.last_trie_search.clear()
             return
         print_keyboard_layout_helper()
         self.key_sequence.append(mapped_key)
