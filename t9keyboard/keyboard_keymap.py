@@ -23,4 +23,5 @@ numpad_keyboard_special_keys_map={
 class SpecialAction(Enum):
     backspace = "backspace"
     switch_keyboard_mode = "switch_keyboard_mode"
+    switch_letter="switch_letter"
     space="space"

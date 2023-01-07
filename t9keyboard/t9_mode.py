@@ -3,11 +3,11 @@ import time
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
-from typing import List, Type
+from typing import List, Type, Union
 
 import keyboard
 
-from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map
+from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
 from t9keyboard.display.display import print_keyboard_layout_helper
 
@@ -70,9 +70,11 @@ class T9Mode:
     trie_engine: Trie
     last_trie_search: SearchResults
     key_sequence: List[NumpadKey]
+    last_pressed_button: Union[NumpadKey, None]
 
     def __init__(self, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
         # Initialize trie engine - use default one if not given
+        self.last_pressed_button = None
         self.trie_engine = trie if trie else Trie()
         # Load dictionary - use default one if not given
         self.load_word_dictionary_from_folder(custom_dictionary)
@@ -96,10 +98,7 @@ class T9Mode:
             self.perform_special_key_action(mapped_key)
             return
         print_keyboard_layout_helper()
-        self.key_sequence.append(mapped_key)
-        # TODO: its WA
-        self.last_trie_search = self.find_words(
-            "".join([num.keypad_button for num in self.key_sequence]))
+        self.perform_alphabetical_key_action(mapped_key)
 
         print(self.last_trie_search)
 
@@ -211,26 +210,6 @@ class T9Mode:
                 return new_key_object
         raise Exception(f"Could not find {key} in available_keys.")
 
-    def perform_special_key_action(self, mapped_key):
-        # WARNING: This requires python >3.10 (case matching method)
-        # action = getattr(SpecialAction, mapped_key.value())
-        # match action:
-        #     case SpecialAction.backspace:
-        #         # Need to delete plus character, then actual character - doubled cuz of Linux bug
-        #         self.delete_last_character()
-        #         self.delete_last_character()
-        #     case SpecialAction.switch_keyboard_mode:
-        #         # self.switch_keyboard_mode()
-        if mapped_key.keypad_button == "0":
-            first_phrase = self.last_trie_search.get_phrase_from_search_results(0).word
-            self.last_trie_search.sort()
-            self.write_character_as_keyboard_input(first_phrase)
-            # self.write_character_as_keyboard_input(self.last_trie_search[0].word)
-            self.text_written += " " + first_phrase
-            print(self.text_written)
-            self.key_sequence.clear()
-            # self.last_trie_search.clear()
-
     def write_character_as_keyboard_input(self, characters: str):
         """
         Write passed character as keyboard input.
@@ -239,6 +218,61 @@ class T9Mode:
         """
         time.sleep(0.01)
         keyboard.write(characters)
+
+    def perform_alphabetical_key_action(self, mapped_key: NumpadKey):
+        """
+        Append written alphabet key to key_sequence.
+        Then perform trie search with actual value of key_sequence.
+        SearchResults object from trie search will be stored in last_trie_search parameter.
+        :param mapped_key: NumpadKey object
+        """
+        self.key_sequence.append(mapped_key)
+        actual_key_sequence = self.get_actual_key_sequence_string()
+        self.last_trie_search = self.find_words(actual_key_sequence)
+
+    def perform_special_key_action(self, mapped_key: NumpadKey):
+        # WARNING: This requires python >3.10 (case matching method)
+        action = getattr(SpecialAction, mapped_key.letters[0])
+        match action:
+            case SpecialAction.space:
+                phrase_to_write = self.last_trie_search.get_current_chosen_phrase().word
+                self.write_character_as_keyboard_input(phrase_to_write)
+                # TODO: Replace text_written
+                self.text_written += " " + phrase_to_write
+                print(self.text_written)
+                self.store_last_pressed_key()
+                # Clear key sequence
+                self.key_sequence.clear()
+            case SpecialAction.switch_letter:
+                if self.last_trie_search:
+                    self.last_trie_search.increase_phrase_counter()
+                # TODO: Fix gap with missing last trie search.
+            case SpecialAction.backspace:
+                # TODO: Implement deleting whole word if last action was SpecialAction.space
+                # if self.last_pressed_button and self.last_pressed_button.letters==SpecialAction.space
+                self.delete_last_character()
+
+    def get_actual_key_sequence_string(self) -> str:
+        """
+        Loop through self.key_sequence and get digit from every NumpadKey object.
+        :return: String with digits from key sequence
+        """
+        return "".join([num.keypad_button for num in self.key_sequence])
+
+    def store_last_pressed_key(self):
+        """
+        If key sequence is not clear, save last pressed key to last_pressed_button parameter.
+        """
+        if self.key_sequence:
+            self.last_pressed_button = self.key_sequence[-1]
+
+    def delete_last_character(self):
+        """
+        Delete last character from input and pop last item from already written key_sequence list
+        :return:
+        """
+        keyboard.send("backspace")
+        self.key_sequence.pop()
 
 # TODO: move this as unit tests for T9Mode
 # t9_mode = T9Mode()

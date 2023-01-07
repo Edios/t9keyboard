@@ -3,19 +3,6 @@ from dataclasses import dataclass, field
 from typing import List
 
 
-# Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
-class TrieNode:
-    """
-    Single node of Trie structure
-    """
-
-    def __init__(self, char="", word_weight=0):
-        self.char = char
-        self.word_end = False
-        self.word_weight = word_weight
-        self.children = {}
-
-
 @dataclass
 class SearchPhrase:
     word: str
@@ -29,6 +16,19 @@ class SearchPhrase:
 
     def __repr__(self):
         return self.word
+
+
+# Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
+class TrieNode:
+    """
+    Single node of Trie structure
+    """
+
+    def __init__(self, char="", word_weight=0):
+        self.char = char
+        self.word_end = False
+        self.word_weight = word_weight
+        self.children = {}
 
 
 class Trie:
