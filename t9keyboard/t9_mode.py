@@ -23,7 +23,7 @@ class NumpadKey:
 class SearchResults:
     phrase_counter: int = field(default=0)
     phrase_counter_limit: int = field(default=5)
-    search_phrases: List[SearchPhrase] = field(default_factory=lambda: [])
+    search_phrases: List = field(default_factory=lambda: [])
 
     def get_current_chosen_phrase(self) -> SearchPhrase:
         """
@@ -77,12 +77,31 @@ class T9Mode:
         # Load dictionary - use default one if not given
         self.load_word_dictionary_from_folder(custom_dictionary)
         # Initialize default lists
-        #self.last_trie_search = []
+        # self.last_trie_search = []
         self.key_sequence = []
         # Get available numpad keyboard keys
         self.available_keys = self.get_available_keyboard_keys()
         # TODO: Find better implementation for storing written text
         self.text_written = "Already written text: "
+
+    def handle_t9_mode(self, mapped_key: NumpadKey):
+        # Take input, perform search in t9
+        # Show current nums and available letters for each num
+        # if there are complete words: display them
+        # BONUS: Show words started with current sequence
+        # append input to self.key_sequence
+        # pass
+        # t9_mode.find_words("3"))
+        if mapped_key.is_special_key:
+            self.perform_special_key_action(mapped_key)
+            return
+        print_keyboard_layout_helper()
+        self.key_sequence.append(mapped_key)
+        # TODO: its WA
+        self.last_trie_search = self.find_words(
+            "".join([num.keypad_button for num in self.key_sequence]))
+
+        print(self.last_trie_search)
 
     def find_words(self, numbers: str) -> SearchResults:
         """
@@ -91,12 +110,14 @@ class T9Mode:
         :return: List of possible words to be constructed from input numbers
         """
         combo_list = self._product_combos(numbers)
-        found_words = SearchResults()
+        search_results = SearchResults()
         for single_phrase in combo_list:
             found_phases = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
             if found_phases:
-                found_words.search_phrases.extend(found_phases)
-        return found_words
+                search_results.search_phrases.extend(found_phases)
+            # Word list need to be sorted again
+            search_results.sort()
+        return search_results
 
     def load_word_dictionary_from_folder(self, directory_path: Path):
         """
@@ -200,7 +221,15 @@ class T9Mode:
         #         self.delete_last_character()
         #     case SpecialAction.switch_keyboard_mode:
         #         # self.switch_keyboard_mode()
-        pass
+        if mapped_key.keypad_button == "0":
+            first_phrase = self.last_trie_search.get_phrase_from_search_results(0).word
+            self.last_trie_search.sort()
+            self.write_character_as_keyboard_input(first_phrase)
+            # self.write_character_as_keyboard_input(self.last_trie_search[0].word)
+            self.text_written += " " + first_phrase
+            print(self.text_written)
+            self.key_sequence.clear()
+            # self.last_trie_search.clear()
 
     def write_character_as_keyboard_input(self, characters: str):
         """
@@ -210,31 +239,6 @@ class T9Mode:
         """
         time.sleep(0.01)
         keyboard.write(characters)
-
-    def handle_t9_mode(self, mapped_key: NumpadKey):
-        # Take input, perform search in t9
-        # Show current nums and available letters for each num
-        # if there are complete words: display them
-        # BONUS: Show words started with current sequence
-        # append input to self.key_sequence
-        # pass
-        # t9_mode.find_words("3"))
-
-        if mapped_key.keypad_button == "0":
-            self.write_character_as_keyboard_input(self.last_trie_search[0].word)
-            # self.write_character_as_keyboard_input(self.last_trie_search[0].word)
-            self.text_written += " " + self.last_trie_search[0].word
-            print(self.text_written)
-            self.key_sequence.clear()
-            # self.last_trie_search.clear()
-            return
-        print_keyboard_layout_helper()
-        self.key_sequence.append(mapped_key)
-        # TODO: its WA
-        self.last_trie_search = self.find_words(
-            "".join([num.keypad_button for num in self.key_sequence]))
-
-        print(self.last_trie_search)
 
 # TODO: move this as unit tests for T9Mode
 # t9_mode = T9Mode()
