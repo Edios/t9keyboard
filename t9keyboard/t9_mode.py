@@ -96,11 +96,11 @@ class T9Mode:
         # t9_mode.find_words("3"))
         if mapped_key.is_special_key:
             self.perform_special_key_action(mapped_key)
-            return
+        else:
+            self.perform_alphabetical_key_action(mapped_key)
+            self.delete_last_character()
         print_keyboard_layout_helper()
-        self.perform_alphabetical_key_action(mapped_key)
-
-        print(self.last_trie_search)
+        print(self.last_trie_search.search_phrases[0:5])
 
     def find_words(self, numbers: str) -> SearchResults:
         """
@@ -210,7 +210,7 @@ class T9Mode:
                 return new_key_object
         raise Exception(f"Could not find {key} in available_keys.")
 
-    def write_character_as_keyboard_input(self, characters: str):
+    def write_character_as_keyboard_output(self, characters: str):
         """
         Write passed character as keyboard input.
         :param characters: String character (or multiple) to write
@@ -232,11 +232,16 @@ class T9Mode:
 
     def perform_special_key_action(self, mapped_key: NumpadKey):
         # WARNING: This requires python >3.10 (case matching method)
-        action = getattr(SpecialAction, mapped_key.letters[0])
+        action = getattr(SpecialAction, mapped_key.letters[0],None)
         match action:
             case SpecialAction.space:
+                """
+                When space is pressed, write word as keyboard output.
+                """
                 phrase_to_write = self.last_trie_search.get_current_chosen_phrase().word
-                self.write_character_as_keyboard_input(phrase_to_write)
+                self.delete_last_character()
+                self.write_character_as_keyboard_output(phrase_to_write)
+                self.write_character_as_keyboard_output(" ")
                 # TODO: Replace text_written
                 self.text_written += " " + phrase_to_write
                 print(self.text_written)
@@ -245,13 +250,17 @@ class T9Mode:
                 self.key_sequence.clear()
             case SpecialAction.switch_letter:
                 if self.last_trie_search:
+                    self.delete_last_character()
                     self.last_trie_search.increase_phrase_counter()
                 # TODO: Fix gap with missing last trie search.
             case SpecialAction.backspace:
                 # TODO: Implement deleting whole word if last action was SpecialAction.space
                 # if self.last_pressed_button and self.last_pressed_button.letters==SpecialAction.space
                 self.delete_last_character()
-
+                self.delete_last_character()
+            case None:
+                print("Special Key action not implemented")
+                pass
     def get_actual_key_sequence_string(self) -> str:
         """
         Loop through self.key_sequence and get digit from every NumpadKey object.
@@ -261,7 +270,7 @@ class T9Mode:
 
     def store_last_pressed_key(self):
         """
-        If key sequence is not clear, save last pressed key to last_pressed_button parameter.
+        If key sequence is not empty, save last pressed key to last_pressed_button parameter.
         """
         if self.key_sequence:
             self.last_pressed_button = self.key_sequence[-1]
@@ -272,7 +281,7 @@ class T9Mode:
         :return:
         """
         keyboard.send("backspace")
-        self.key_sequence.pop()
+        #self.key_sequence.pop()
 
 # TODO: move this as unit tests for T9Mode
 # t9_mode = T9Mode()
