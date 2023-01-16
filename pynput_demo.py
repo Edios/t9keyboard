@@ -14,10 +14,20 @@ def keyboard_listener():
         print('on release', key)
         if key == keyboard.Key.esc:
             return False
-
+    def is_numpad_key(vkCode:int)->bool:
+        """
+        Check if its a virtuak key code which indicates numpad
+        https://cherrytree.at/misc/vk.htm
+        :param vkCode: Virtual keyboard Code
+        :return:
+        """
+        if 96 <= vkCode <= 105:
+            return True
+        #TODO: Add numlock etc
+        return False
     def win32_event_filter(msg, data):
         #if(msg == 257 or msg == 256) and (data.vkCode == 38 or data.vkCode == 40):
-        if hasattr(data, 'vkCode') and 96 <= data.vkCode <= 105:
+        if hasattr(data, 'vkCode') and is_numpad_key(data.vkCode):
             listener._suppress = True
         else:
             listener._suppress = False
