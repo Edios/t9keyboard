@@ -44,8 +44,10 @@ def keyboard_listener(handled_method=None):
 
 def method_to_handle(key:KeyCode):
     print(f"Method got: {key.vk} {key}")
-def numpad_listner():
+def numpad_listner(handled_method):
     global listener
-    listener = keyboard_listener(handled_method=method_to_handle)
+    listener = keyboard_listener(handled_method=handled_method)
     with listener as ml:
         ml.join()
+
+numpad_listner(method_to_handle)
