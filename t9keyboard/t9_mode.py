@@ -7,6 +7,7 @@ from typing import List, Type, Union
 
 import keyboard
 
+from t9keyboard.engine.keyboard_writer import KeyboardWriter
 from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
 from t9keyboard.display.display import print_keyboard_layout_helper
@@ -69,6 +70,7 @@ class T9Mode:
     """
     trie_engine: Trie
     last_trie_search: SearchResults
+    writer: KeyboardWriter
     key_sequence: List[NumpadKey]
     last_pressed_button: Union[NumpadKey, None]
 
@@ -76,6 +78,7 @@ class T9Mode:
         # Initialize trie engine - use default one if not given
         self.last_pressed_button = None
         self.trie_engine = trie if trie else Trie()
+        self.writer = KeyboardWriter()
         # Load dictionary - use default one if not given
         self.load_word_dictionary_from_folder(custom_dictionary)
         # Initialize default lists
@@ -91,7 +94,7 @@ class T9Mode:
             self.perform_special_key_action(mapped_key)
         else:
             self.perform_alphabetical_key_action(mapped_key)
-            #self.delete_last_character()
+            # self.delete_last_character()
         print_keyboard_layout_helper()
         print(self.last_trie_search.search_phrases[0:5])
 
@@ -203,15 +206,6 @@ class T9Mode:
                 return new_key_object
         raise Exception(f"Could not find {key} in available_keys.")
 
-    def write_character_as_keyboard_output(self, characters: str):
-        """
-        Write passed character as keyboard input.
-        :param characters: String character (or multiple) to write
-        :return: None
-        """
-        time.sleep(0.01)
-        keyboard.write(characters)
-
     def perform_alphabetical_key_action(self, mapped_key: NumpadKey):
         """
         Append written alphabet key to key_sequence.
@@ -225,17 +219,17 @@ class T9Mode:
 
     def perform_special_key_action(self, mapped_key: NumpadKey):
         # WARNING: This requires python >3.10 (case matching method)
-        action = getattr(SpecialAction, mapped_key.letters[0],None)
+        action = getattr(SpecialAction, mapped_key.letters[0], None)
         match action:
             case SpecialAction.space:
                 """
                 When space is pressed, write word as keyboard output.
                 """
                 phrase_to_write = self.last_trie_search.get_current_chosen_phrase().word
-                #self.delete_last_character()
-                #print(phrase_to_write)
-                self.write_character_as_keyboard_output(phrase_to_write)
-                self.write_character_as_keyboard_output(" ")
+                # self.delete_last_character()
+                # print(phrase_to_write)
+                #TODO: Consider changing this space WA
+                self.writer.write(phrase_to_write+" ")
                 # TODO: Replace text_written
                 self.text_written += " " + phrase_to_write
                 print(self.text_written)
@@ -244,17 +238,16 @@ class T9Mode:
                 self.key_sequence.clear()
             case SpecialAction.switch_letter:
                 if self.last_trie_search:
-                    self.delete_last_character()
                     self.last_trie_search.increase_phrase_counter()
                 # TODO: Fix gap with missing last trie search.
             case SpecialAction.backspace:
                 # TODO: Implement deleting whole word if last action was SpecialAction.space
                 # if self.last_pressed_button and self.last_pressed_button.letters==SpecialAction.space
-                self.delete_last_character()
-                self.delete_last_character()
+                self.writer.backspace()
             case None:
                 print("Special Key action not implemented")
                 pass
+
     def get_actual_key_sequence_string(self) -> str:
         """
         Loop through self.key_sequence and get digit from every NumpadKey object.
@@ -268,14 +261,6 @@ class T9Mode:
         """
         if self.key_sequence:
             self.last_pressed_button = self.key_sequence[-1]
-
-    def delete_last_character(self):
-        """
-        Delete last character from input and pop last item from already written key_sequence list
-        :return:
-        """
-        keyboard.send("backspace")
-        #self.key_sequence.pop()
 
 # TODO: move this as unit tests for T9Mode
 # t9_mode = T9Mode()
