@@ -7,8 +7,7 @@ from typing import List, Type, Union
 
 import keyboard
 
-from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction, \
-    virtual_key_to_alphabet_keys_map, virtual_key_to_special_keys_map
+from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
 from t9keyboard.display.display import print_keyboard_layout_helper
 
@@ -88,13 +87,6 @@ class T9Mode:
         self.text_written = "Already written text: "
 
     def handle_t9_mode(self, mapped_key: NumpadKey):
-        # Take input, perform search in t9
-        # Show current nums and available letters for each num
-        # if there are complete words: display them
-        # BONUS: Show words started with current sequence
-        # append input to self.key_sequence
-        # pass
-        # t9_mode.find_words("3"))
         if mapped_key.is_special_key:
             self.perform_special_key_action(mapped_key)
         else:
@@ -192,13 +184,13 @@ class T9Mode:
         :return: List of available KeyboardKey objects
         """
         available_keys = []
-        for key, values in virtual_key_to_alphabet_keys_map.items():
+        for key, values in numpad_character_keys_map.items():
             available_keys.append(NumpadKey(key, values))
-        for key, values in virtual_key_to_special_keys_map.items():
+        for key, values in numpad_keyboard_special_keys_map.items():
             available_keys.append(NumpadKey(key, values, is_special_key=True))
         return available_keys
 
-    def map_key(self, key: int) -> NumpadKey:
+    def map_key(self, key: str) -> NumpadKey:
         """
         Map key from input to object of from list of available keyboard buttons.
         NumpadKey object add information about letters values which will be used to perform logic.
@@ -240,7 +232,8 @@ class T9Mode:
                 When space is pressed, write word as keyboard output.
                 """
                 phrase_to_write = self.last_trie_search.get_current_chosen_phrase().word
-                self.delete_last_character()
+                #self.delete_last_character()
+                #print(phrase_to_write)
                 self.write_character_as_keyboard_output(phrase_to_write)
                 self.write_character_as_keyboard_output(" ")
                 # TODO: Replace text_written

@@ -15,32 +15,28 @@ numpad_keyboard_special_keys_map = {
     '0': ['space'],
     '+': ['backspace'],
     '-': ['switch_keyboard_mode'],
-    '.': ['switch_letter'],
+    ',': ['switch_letter'],
     'enter': ['enter'],
     'num lock':['num lock']
 }
 
 #This is key map for pynput libary
 #Source for Virtual-Key Codes: https://cherrytree.at/misc/vk.htm
-virtual_key_to_alphabet_keys_map = {
-    '103': ['.', ',', '?', '!'],
-    '104': ['a', 'b', 'c'],
-    '105': ['d', 'e', 'f'],
-    '100': ['g', 'h', 'i'],
-    '101': ['j', 'k', 'l'],
-    '102': ['m', 'n', 'o'],
-    '97': ['p', 'q', 'r', 's'],
-    '98': ['t', 'u', 'v'],
-    '99': ['w', 'x', 'y', 'z']
-}
-virtual_key_to_special_keys_map = {
-    '96': ['space'],
-    '107': ['backspace'],
-    '109': ['switch_keyboard_mode'],
-    '110': ['switch_letter'],
-    '144':['num lock']
-    #enter key could not be easily determined
-    #'enter': ['enter'],
+numpad_key_to_virtual_key_code_map = {
+    '103': "7",
+    '104': "8",
+    '105': "9",
+    '100': "4",
+    '101': "5",
+    '102': "6",
+    '97': "1",
+    '98': "2",
+    '99': "3",
+    '96': "0",
+    '107': '+',
+    '109': '-',
+    '110': ',',
+    '144':'num lock'
 }
 class SpecialAction(Enum):
     backspace = "backspace"
