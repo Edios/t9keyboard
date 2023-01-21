@@ -98,7 +98,7 @@ class T9Mode:
             self.perform_special_key_action(mapped_key)
         else:
             self.perform_alphabetical_key_action(mapped_key)
-            self.delete_last_character()
+            #self.delete_last_character()
         print_keyboard_layout_helper()
         print(self.last_trie_search.search_phrases[0:5])
 
