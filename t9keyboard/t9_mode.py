@@ -7,7 +7,8 @@ from typing import List, Type, Union
 
 import keyboard
 
-from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
+from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction, \
+    virtual_key_to_alphabet_keys_map, virtual_key_to_special_keys_map
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
 from t9keyboard.display.display import print_keyboard_layout_helper
 
@@ -191,17 +192,17 @@ class T9Mode:
         :return: List of available KeyboardKey objects
         """
         available_keys = []
-        for key, values in numpad_character_keys_map.items():
+        for key, values in virtual_key_to_alphabet_keys_map.items():
             available_keys.append(NumpadKey(key, values))
-        for key, values in numpad_keyboard_special_keys_map.items():
+        for key, values in virtual_key_to_special_keys_map.items():
             available_keys.append(NumpadKey(key, values, is_special_key=True))
         return available_keys
 
-    def map_key(self, key: str) -> NumpadKey:
+    def map_key(self, key: int) -> NumpadKey:
         """
         Map key from input to object of from list of available keyboard buttons.
         NumpadKey object add information about letters values which will be used to perform logic.
-        :param key: str Value which represents pressed key
+        :param key: int Value which represents pressed key
         :return: Matching NumpadKey from available keys
         """
         for index, available_key in enumerate(self.available_keys):
