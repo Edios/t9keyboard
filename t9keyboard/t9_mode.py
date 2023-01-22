@@ -8,6 +8,7 @@ from typing import List, Type, Union
 import keyboard
 
 from t9keyboard.engine.keyboard_writer import KeyboardWriter
+from t9keyboard.engine.word_processor import WordProcessor
 from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
 from t9keyboard.display.display import print_keyboard_layout_helper
@@ -62,6 +63,13 @@ class SearchResults:
         """
         self.phrase_counter_limit = new_counter_limit
 
+    def get_top_phrases(self) -> List[str]:
+        """
+        Get slice of search_phrases list with stop value of phrase_counter_limit.
+        :return:
+        """
+        return self.search_phrases[slice(0, self.phrase_counter_limit)]
+
 
 class T9Mode:
     """
@@ -69,34 +77,44 @@ class T9Mode:
     trie_engine
     """
     trie_engine: Trie
-    last_trie_search: SearchResults
+    trie_search_results: SearchResults
     writer: KeyboardWriter
+    word_processor: WordProcessor
     key_sequence: List[NumpadKey]
-    last_pressed_button: Union[NumpadKey, None]
+
+    # last_pressed_button: Union[NumpadKey, None]
 
     def __init__(self, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
         # Initialize trie engine - use default one if not given
         self.last_pressed_button = None
         self.trie_engine = trie if trie else Trie()
         self.writer = KeyboardWriter()
+        self.word_processor = WordProcessor()
         # Load dictionary - use default one if not given
         self.load_word_dictionary_from_folder(custom_dictionary)
         # Initialize default lists
-        # self.last_trie_search = []
+        self.trie_search_results = SearchResults()
         self.key_sequence = []
         # Get available numpad keyboard keys
         self.available_keys = self.get_available_keyboard_keys()
-        # TODO: Find better implementation for storing written text
-        self.text_written = "Already written text: "
 
     def handle_t9_mode(self, mapped_key: NumpadKey):
+        """
+        Determine if given mapped_key is special key.
+        Base on that perform special or alphabetical key action.
+        # TODO add info about helper and
+        :param mapped_key: NumpadKey object corresponding with pressed key's
+        :return:
+        """
         if mapped_key.is_special_key:
             self.perform_special_key_action(mapped_key)
         else:
             self.perform_alphabetical_key_action(mapped_key)
-            # self.delete_last_character()
+        # TODO: Separate this
         print_keyboard_layout_helper()
-        print(self.last_trie_search.search_phrases[0:5])
+        #print("Top search results: " + self.last_trie_search.search_phrases[0:5])
+        print(f"Top search results: {self.trie_search_results.get_top_phrases()}")
+        print(f"Actual chosen phrase: {self.trie_search_results.get_current_chosen_phrase()}")
 
     def find_words(self, numbers: str) -> SearchResults:
         """
@@ -215,7 +233,7 @@ class T9Mode:
         """
         self.key_sequence.append(mapped_key)
         actual_key_sequence = self.get_actual_key_sequence_string()
-        self.last_trie_search = self.find_words(actual_key_sequence)
+        self.trie_search_results = self.find_words(actual_key_sequence)
 
     def perform_special_key_action(self, mapped_key: NumpadKey):
         # WARNING: This requires python >3.10 (case matching method)
@@ -225,20 +243,16 @@ class T9Mode:
                 """
                 When space is pressed, write word as keyboard output.
                 """
-                phrase_to_write = self.last_trie_search.get_current_chosen_phrase().word
-                # self.delete_last_character()
-                # print(phrase_to_write)
-                #TODO: Consider changing this space WA
-                self.writer.write(phrase_to_write+" ")
-                # TODO: Replace text_written
-                self.text_written += " " + phrase_to_write
-                print(self.text_written)
-                self.store_last_pressed_key()
-                # Clear key sequence
+                # TODO: Code will fail when last_trie_search is empty SearchResult
+                chosen_phrase = self.trie_search_results.get_current_chosen_phrase().word
+                self.word_processor.append_characters_to_queue(chosen_phrase)
+                self.word_processor.finish_queued_word()
+                self.writer.write(self.word_processor.get_last_word() + " ")
                 self.key_sequence.clear()
+
             case SpecialAction.switch_letter:
-                if self.last_trie_search:
-                    self.last_trie_search.increase_phrase_counter()
+                if self.trie_search_results:
+                    self.trie_search_results.increase_phrase_counter()
                 # TODO: Fix gap with missing last trie search.
             case SpecialAction.backspace:
                 # TODO: Implement deleting whole word if last action was SpecialAction.space
@@ -246,7 +260,6 @@ class T9Mode:
                 self.writer.backspace()
             case None:
                 print("Special Key action not implemented")
-                pass
 
     def get_actual_key_sequence_string(self) -> str:
         """
@@ -254,13 +267,13 @@ class T9Mode:
         :return: String with digits from key sequence
         """
         return "".join([num.keypad_button for num in self.key_sequence])
-
-    def store_last_pressed_key(self):
-        """
-        If key sequence is not empty, save last pressed key to last_pressed_button parameter.
-        """
-        if self.key_sequence:
-            self.last_pressed_button = self.key_sequence[-1]
+    #
+    # def store_last_pressed_key(self):
+    #     """
+    #     If key sequence is not empty, save last pressed key to last_pressed_button parameter.
+    #     """
+    #     if self.key_sequence:
+    #         self.last_pressed_button = self.key_sequence[-1]
 
 # TODO: move this as unit tests for T9Mode
 # t9_mode = T9Mode()
