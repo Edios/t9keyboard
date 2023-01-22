@@ -6,6 +6,7 @@ from typing import List
 
 import keyboard
 
+from t9keyboard.engine.keyboard_writer import KeyboardWriter
 from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
 
 
@@ -48,11 +49,13 @@ class SingleTapMode:
     available_keys: List[SingleTapKey]
     key_sequence: List[SingleTapKey]
     key_pressed_time: datetime
+    writer:KeyboardWriter
 
     def __init__(self):
         self.available_keys = self.get_available_keyboard_keys()
         # Default value init
         self.key_sequence = []
+        self.writer=KeyboardWriter()
 
     def map_key(self, key: str) -> SingleTapKey:
         """
@@ -110,7 +113,7 @@ class SingleTapMode:
             self.write_switched_text_from_key(self.key_sequence[-1].value())
         else:
             self.key_sequence.append(mapped_key)
-            self.write_character_as_keyboard_input(mapped_key.value())
+            self.writer.write(mapped_key.value())
 
         self.print_text_to_screen()
 
@@ -133,19 +136,9 @@ class SingleTapMode:
         :return: None
         """
         # WA: Delete previous character by sending backspace
-        self.delete_last_character()
+        self.writer.backspace()
         time.sleep(0.01)
-        self.write_character_as_keyboard_input(character)
-
-    def write_character_as_keyboard_input(self, characters: str):
-        """
-        Write passed character as keyboard input.
-        :param characters: String character (or multiple) to write
-        :return: None
-        """
-        self.delete_last_character()
-        time.sleep(0.01)
-        keyboard.write(characters)
+        self.writer.write(character)
 
     def is_letter_switch(self, key: SingleTapKey) -> bool:
         """
@@ -165,18 +158,7 @@ class SingleTapMode:
         action = getattr(SpecialAction, mapped_key.value())
         match action:
             case SpecialAction.backspace:
-                # Need to delete plus character, then actual character - doubled cuz of Linux bug
-                self.delete_last_character()
-                self.delete_last_character()
+                self.writer.backspace()
             case SpecialAction.switch_keyboard_mode:
                 # self.switch_keyboard_mode()
                 pass
-
-    def delete_last_character(self):
-        """
-        Delete last character from input.
-        #[..]and pop last item from already written key_sequence list
-        :return:
-        """
-        keyboard.send("backspace")
-        # self.key_sequence.pop()
