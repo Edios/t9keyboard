@@ -7,7 +7,7 @@ class WordProcessor:
     finished_words: List[str] = field(default_factory=list)
     queued_word: str = field(default="")
 
-    def append_characters(self, characters: str):
+    def append_characters_to_queue(self, characters: str):
         """
         Append character (or multiple) to queued_word.
         :param characters: string to be added into queued_word
