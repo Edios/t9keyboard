@@ -1,80 +1,39 @@
-from dataclasses import dataclass, field
-import time
-from pathlib import Path
-from typing import List, Union
-
-import keyboard
-import pyperclip
+from typing import List
 
 
-@dataclass
-class Word:
-    # when finished, it will be written to screen
-    key_sequence: str
-    word: Union[str, None] = field(default=False)
-    finished: bool = field(default=False)
-
-
-@dataclass
 class WordProcessor:
-    words: List[Word]
+    typed_words: List[str]
+    queued_word: str
 
-    def append(self, item: str):
+    def append_characters(self, characters: str):
         """
-        Append key sequence to
-        :param item:
-        :return:
+
+        :param characters:
         """
-        if not self.words or not self.words[-1].finished:
-            self.words[-1].key_sequence.join(item)
-        else:
-            self.words.append(Word(key_sequence=item))
+        pass
 
-    def add_word(self, word: str):
+    def finish_word(self):
+        pass
+
+    def get_words(self, slicing: slice = slice(0, None)) -> str:
         """
-        Finish the word by changing finished parameter in word.
-        Write value to the screen
-        :param word: word to be written
-        :return:
+
+        :param slicing:
+        :param all:
         """
-        self.words[-1].finished = True
-        self.words[-1].word = word
+        pass
 
+    def get_last_word(self) -> str:
+        return self.get_words(slicing=slice(-1, None, None))
 
-def delete_character(func):
-    def inner(*args, **kwargs):
-        keyboard.send("backspace")
-        time.sleep(0.1)
-        func(*args, **kwargs)
+    def get_all_words(self) -> str:
+        return self.get_words()
 
-    return inner
+    def count_last_word(self, count_additional_space=False) -> int:
+        pass
 
+    def clear_typed_words(self):
+        pass
 
-@delete_character
-def write_characters_to_screen(characters: str):
-    time.sleep(0.1)
-    keyboard.write(characters, delay=0.001)
-
-
-def test():
-    # time.sleep(4)
-    print("here we go")
-    keyboard.send("capslock")
-    time.sleep(0.1)
-    keyboard.write("kurdebele", delay=0.01)
-    #time.sleep(0.1)
-    keyboard.send("capslock")
-    #time.sleep(0.1)
-    keyboard.write("kurdebele", delay=0.01)
-    # write_characters_to_screen("bele")
-
-
-if __name__ == '__main__':
-    time.sleep(4)
-    #keyboard.write("kurdex", delay=0.1)
-    #write_characters_to_screen("bele")
-    pyperclip.copy("kurdebele")
-    pyperclip.paste()
-    """
-    exbel bele
-    """
+    def clear_queued_word(self):
+        pass
