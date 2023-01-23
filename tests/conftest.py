@@ -52,8 +52,9 @@ def words_objects() -> List[SearchPhrase]:
     Used for trie_engine testing to avoid repeating same objects.
     :return: List[SearchPhrase]
     """
-    wha_combo_tuple=[(word,0) for word in wha_combo]
+    wha_combo_tuple = [(word, 0) for word in wha_combo]
     return get_list_of_search_phrases(wha_combo_tuple)
+
 
 @pytest.fixture
 def words_weighted_objects() -> List[SearchPhrase]:
@@ -63,3 +64,8 @@ def words_weighted_objects() -> List[SearchPhrase]:
     :return: List[SearchPhrase]
     """
     return get_list_of_search_phrases(wha_combo_weighted)
+
+
+"""
+Fixtures for tests/XXX
+"""

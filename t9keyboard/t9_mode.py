@@ -77,6 +77,13 @@ class SearchResults:
         """
         return True if not self.search_phrases else False
 
+    def clear_searched_phrases(self):
+        """
+        Clear search_phrases and counter.
+        :return:
+        """
+        self.search_phrases=[]
+        self.phrase_counter=0
 
 class T9Mode:
     """
@@ -277,11 +284,12 @@ class T9Mode:
                     self.writer.backspace(
                         repeat_count=self.word_processor.count_last_word_length(count_additional_space=True)
                     )
-                    self.word_processor.remove_last_finished_word()
+                    self.word_processor.clear_word_processor_fields()
+                    self.trie_search_results.clear_searched_phrases()
                     self.key_sequence.clear()
                 else:
                     self.writer.backspace()
-                    self.key_sequence.pop()
+                    if self.key_sequence: self.key_sequence.pop()
             case None:
                 print("Special Key action not implemented")
 
