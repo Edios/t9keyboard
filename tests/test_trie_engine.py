@@ -1,5 +1,7 @@
 import pytest
 
+from t9keyboard.engine.trie_engine import SearchPhrase
+
 
 class TestTrieEngine:
     """
@@ -48,34 +50,37 @@ class TestTrieEngine:
         :param word_preloaded_trie: pytest fixture of word preloaded Trie object
         """
         search_result = word_preloaded_trie.search_for_words_starts_with_prefix("what", full_words_only=True)
-        assert search_result == [("what", 0)]
+        assert search_result[0] == SearchPhrase("what", 0, True)
 
-    def test_search_in_trie_for_words_started_with_prefix(self, word_preloaded_trie):
+    def test_search_in_trie_for_words_started_with_prefix(self, word_preloaded_trie, words_objects):
         """
         Spawn word-preloaded Trie object and see if search method returns words started with prefix.
         Pass criteria: Returned list contains all words started with prefix
         :param word_preloaded_trie: pytest fixture of word preloaded Trie object
         """
         search_result = word_preloaded_trie.search_for_words_starts_with_prefix("what")
-        assert search_result == [('what', 0), [('whats', 0), ('whatever', 0)]]
+        #Need to delete second element from words_object to match criteria
+        words_objects.pop(1)
+        assert [elem.word for elem in search_result] == [elem.word for elem in words_objects]
 
-    def test_trie_search_results_are_sorted_by_weight(self, weighted_word_preloaded_trie):
+    def test_trie_search_results_are_sorted_by_weight(self, weighted_word_preloaded_trie, words_weighted_objects):
         """
         Spawn word-preloaded Trie object and see if search returns words sorted by weight.
         Pass criteria: Search results are in ordered by word weight.
         :param weighted_word_preloaded_trie: pytest fixture of word and weight preloaded Trie object
+        :param weighted_words_objects: pytest fixture with list of SearchPhrase objects
         """
         search_result = weighted_word_preloaded_trie.search_for_words_starts_with_prefix("wha")
-        assert search_result == [[('whatever', 4), ('wham', 3), ('whats', 2), ('what', 0)]]
+        assert search_result == words_weighted_objects
 
-    def test_trie_search_results_first_position_is_full_word(self, weighted_word_preloaded_trie):
+    def test_trie_search_results_first_position_is_full_word(self, weighted_word_preloaded_trie,words_objects):
         """
         Spawn word-preloaded Trie object and see if search for item put full words in the first place (omitting weight)
         Pass criteria: Full word is on the first place of search result
         :param weighted_word_preloaded_trie: pytest fixture of word and weight preloaded Trie object
         """
         search_result = weighted_word_preloaded_trie.search_for_words_starts_with_prefix("what")
-        assert search_result[0] == ('what', 0)
+        assert search_result[0].word == words_objects[0].word
 
     def test_trie_search_returns_empty_list_when_no_matches(self, weighted_word_preloaded_trie):
         """

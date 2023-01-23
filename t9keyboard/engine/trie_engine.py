@@ -123,7 +123,10 @@ class Trie:
 
         if priority_words == search_result: return priority_words
         # Remove word which exists in dfs search results
-        for word in priority_words:
-            if word in search_result: search_result.remove(word)
+        search_result_words=[elem.word for elem in search_result]
+        for search_phrase in priority_words:
+            if search_phrase.word in search_result_words:
+                search_result.pop(search_result_words.index(search_phrase.word))
+        search_result=sorted(search_result, key=operator.attrgetter('weight'), reverse=True)
         priority_words.extend(search_result)
-        return sorted(priority_words, key=operator.attrgetter('weight'), reverse=True)
+        return priority_words
