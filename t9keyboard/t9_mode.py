@@ -281,6 +281,7 @@ class T9Mode:
                     self.key_sequence.clear()
                 else:
                     self.writer.backspace()
+                    self.key_sequence.pop()
             case None:
                 print("Special Key action not implemented")
 
