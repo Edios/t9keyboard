@@ -70,6 +70,13 @@ class SearchResults:
         """
         return self.search_phrases[slice(0, self.phrase_counter_limit)]
 
+    def is_empty(self) -> bool:
+        """
+        Check if Search results is empty.
+        :return: Return True if its search_phrases is empty.
+        """
+        return True if not self.search_phrases else False
+
 
 class T9Mode:
     """
@@ -102,7 +109,7 @@ class T9Mode:
         """
         Determine if given mapped_key is special key.
         Base on that perform special or alphabetical key action.
-        # TODO add info about helper and
+        If trie_search_results is not empty then print
         :param mapped_key: NumpadKey object corresponding with pressed key's
         :return:
         """
@@ -110,11 +117,13 @@ class T9Mode:
             self.perform_special_key_action(mapped_key)
         else:
             self.perform_alphabetical_key_action(mapped_key)
-        # TODO: Separate this
+        # TODO: Remove this helper printout when display method will be ready
         print_keyboard_layout_helper()
-        #print("Top search results: " + self.last_trie_search.search_phrases[0:5])
-        print(f"Top search results: {self.trie_search_results.get_top_phrases()}")
-        print(f"Actual chosen phrase: {self.trie_search_results.get_current_chosen_phrase()}")
+        if not self.trie_search_results.is_empty():
+            print(f"Top search results: {self.trie_search_results.get_top_phrases()}")
+            print(f"Actual chosen phrase: {self.trie_search_results.get_current_chosen_phrase()}")
+        else:
+            print("No search result found.")
 
     def find_words(self, numbers: str) -> SearchResults:
         """
@@ -242,8 +251,11 @@ class T9Mode:
             case SpecialAction.space:
                 """
                 When space is pressed, write word as keyboard output.
+                Do nothing if trie_search_results is empty.
                 """
-                # TODO: Code will fail when last_trie_search is empty SearchResult
+                if self.trie_search_results.is_empty():
+                    print("Search result is empty, no word to be written")
+                    return
                 chosen_phrase = self.trie_search_results.get_current_chosen_phrase().word
                 self.word_processor.append_characters_to_queue(chosen_phrase)
                 self.word_processor.finish_queued_word()
@@ -251,13 +263,24 @@ class T9Mode:
                 self.key_sequence.clear()
 
             case SpecialAction.switch_letter:
-                if self.trie_search_results:
+                """
+                Switch actual hint value if search result is not empty.
+                """
+                if not self.trie_search_results.is_empty():
                     self.trie_search_results.increase_phrase_counter()
-                # TODO: Fix gap with missing last trie search.
             case SpecialAction.backspace:
-                # TODO: Implement deleting whole word if last action was SpecialAction.space
-                # if self.last_pressed_button and self.last_pressed_button.letters==SpecialAction.space
-                self.writer.backspace()
+                """
+                Delete last character by sending backspace.
+                If whole word was just typed, delete it by repeating backspace key, remove that word from finished_words. 
+                """
+                if not self.word_processor.queued_word and self.word_processor.finished_words:
+                    self.writer.backspace(
+                        repeat_count=self.word_processor.count_last_word_length(count_additional_space=True)
+                    )
+                    self.word_processor.remove_last_finished_word()
+                    self.key_sequence.clear()
+                else:
+                    self.writer.backspace()
             case None:
                 print("Special Key action not implemented")
 
