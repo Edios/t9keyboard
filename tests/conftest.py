@@ -1,7 +1,12 @@
-from typing import List
+import os
+from typing import List, Tuple
 
 import pytest
+from pynput.keyboard import KeyCode
+
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
+from t9keyboard.numpad_keyboard import NumpadKeyboard, NumpadKeyboardMode
+from t9keyboard.t9_mode import NumpadKey
 
 """
 Fixtures for tests/test_trie_engine.py
@@ -67,5 +72,34 @@ def words_weighted_objects() -> List[SearchPhrase]:
 
 
 """
-Fixtures for tests/XXX
+Fixtures for tests/test_numpad_keyboard.py
 """
+
+
+#
+@pytest.fixture
+def five_key() -> Tuple[KeyCode, NumpadKey]:
+    """
+    Fixture for Numeric Keyboard Key "5" - works only on Windows
+
+    :return: Tuple of
+    """
+    return KeyCode(vk="101"), NumpadKey("5", ['j', 'k', 'l'],is_special_key=False)
+
+
+@pytest.fixture
+def numpad_keyboard():
+    os.chdir("../t9keyboard")
+    return NumpadKeyboard()
+
+
+@pytest.fixture
+def numpad_keyboard_t9(numpad_keyboard):
+    numpad_keyboard.keyboard_mode = NumpadKeyboardMode.t9
+    return numpad_keyboard
+
+
+@pytest.fixture
+def numpad_keyboard_single_tap(numpad_keyboard):
+    numpad_keyboard.keyboard_mode = NumpadKeyboardMode.single_tap
+    return numpad_keyboard

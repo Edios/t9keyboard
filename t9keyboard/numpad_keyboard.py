@@ -43,7 +43,7 @@ class NumpadKeyboard:
         button = self.map_virtual_key_to_known_button(str(keypad_button.vk))
         if self.keyboard_mode == NumpadKeyboardMode.single_tap:
             mapped_key = self.single_tap_mode.map_key(button)
-            self.single_tap_mode.handle_single_press_mode(mapped_key)
+            self.single_tap_mode.handle_single_tap_mode(mapped_key)
         if self.keyboard_mode == NumpadKeyboardMode.t9:
             mapped_key = self.t9_mode.map_key(button)
             self.t9_mode.handle_t9_mode(mapped_key)
