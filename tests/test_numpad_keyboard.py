@@ -55,7 +55,7 @@ class TestNumpadKeyboard:
 
     def test_calling_single_tap_mode(self, mocker, numpad_keyboard_single_tap, five_key):
         """
-        Check if T9 mode was triggered correctly.
+        Check if Single Tap mode was triggered correctly.
         Spawn NumpadKeyboard object, change keyboard mode to corresponding one and use on_press_reaction method
         with parameter of KeyCode. Called method will be mocked.
         Pass criteria: Mocked method was called correctly.
