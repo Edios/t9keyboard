@@ -79,22 +79,3 @@ class WordProcessor:
         self.clear_queued_word()
 
 
-# TODO: Convert this code sample into unit test
-# word_processor = WordProcessor()
-#
-# word_processor.append_characters("cat")
-# queue_value = word_processor.queued_word  # cat
-# word_processor.finish_queued_word()
-# print(word_processor.get_words())  # cat
-#
-# characters = ["d", "o", "g"]
-# for character in characters:
-#     word_processor.append_characters(character)
-# word_processor.finish_queued_word()
-# print(word_processor.get_last_word())  # dog
-#
-# print(word_processor.get_words(slicing=slice(1)))  # cat
-# print(word_processor.get_words(slicing=slice(2)))  # "cat dog"
-# word_processor.clear_word_processor_fields()
-# print(word_processor.get_words())  # ""
-# x = word_processor.count_last_word_length() # raise exception

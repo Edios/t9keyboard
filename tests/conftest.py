@@ -12,19 +12,18 @@ from t9keyboard.t9_mode import NumpadKey
 Fixtures for tests/test_trie_engine.py
 """
 
+words_with_wha = ["what", "wham", "whats", "whatever"]
+words_with_wha_weighted = [("whatever", 4), ("wham", 3), ("whats", 2), ("what", 0)]
+
 
 @pytest.fixture
 def empty_trie():
     return Trie()
 
 
-wha_combo = ["what", "wham", "whats", "whatever"]
-wha_combo_weighted = [("whatever", 4), ("wham", 3), ("whats", 2), ("what", 0)]
-
-
 @pytest.fixture
 def word_preloaded_trie(empty_trie):
-    for single_word in wha_combo:
+    for single_word in words_with_wha:
         empty_trie.insert(single_word)
     return empty_trie
 
@@ -32,7 +31,7 @@ def word_preloaded_trie(empty_trie):
 @pytest.fixture
 def weighted_word_preloaded_trie(empty_trie):
     # Could use T9Mode method for weighting, but it would not be unit testing then
-    for single_word, weight in wha_combo_weighted:
+    for single_word, weight in words_with_wha_weighted:
         empty_trie.insert(single_word, weight)
     return empty_trie
 
@@ -57,7 +56,7 @@ def words_objects() -> List[SearchPhrase]:
     Used for trie_engine testing to avoid repeating same objects.
     :return: List[SearchPhrase]
     """
-    wha_combo_tuple = [(word, 0) for word in wha_combo]
+    wha_combo_tuple = [(word, 0) for word in words_with_wha]
     return get_list_of_search_phrases(wha_combo_tuple)
 
 
@@ -68,7 +67,7 @@ def words_weighted_objects() -> List[SearchPhrase]:
     Used for trie_engine testing to avoid repeating same objects.
     :return: List[SearchPhrase]
     """
-    return get_list_of_search_phrases(wha_combo_weighted)
+    return get_list_of_search_phrases(words_with_wha_weighted)
 
 
 """
@@ -84,7 +83,7 @@ def five_key() -> Tuple[KeyCode, NumpadKey]:
 
     :return: Tuple of
     """
-    return KeyCode(vk="101"), NumpadKey("5", ['j', 'k', 'l'],is_special_key=False)
+    return KeyCode(vk="101"), NumpadKey("5", ['j', 'k', 'l'], is_special_key=False)
 
 
 @pytest.fixture
@@ -103,3 +102,7 @@ def numpad_keyboard_t9(numpad_keyboard):
 def numpad_keyboard_single_tap(numpad_keyboard):
     numpad_keyboard.keyboard_mode = NumpadKeyboardMode.single_tap
     return numpad_keyboard
+
+"""
+Fixtures for tests/test_word_processor.py
+"""
