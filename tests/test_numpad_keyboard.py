@@ -69,7 +69,7 @@ class TestNumpadKeyboard:
         assert single_tap.call_count == 1
 
     # This test is correlated with T9Mode.map_key()
-    def test_handle_mode_recived_correctly_mapped_key(self, mocker, numpad_keyboard_t9, five_key):
+    def test_handle_mode_received_correctly_mapped_key(self, mocker, numpad_keyboard_t9, five_key):
         """
         Check if T9 mode parameter
         Spawn NumpadKeyboard object, change keyboard mode to corresponding one and use on_press_reaction method
