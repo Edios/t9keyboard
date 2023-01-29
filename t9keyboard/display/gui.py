@@ -8,18 +8,25 @@ import tkinter.ttk as ttk
 
 @dataclass
 class Gui:
-    root: tk.Tk = field(default=tk.Tk())
+    root: tk.Tk = tk.Tk()
 
     digit_buttons: List[tk.Button] = field(default_factory=list)
     special_buttons: List[tk.Button] = field(default_factory=list)
     actual_phrase: tk.Label = field(default=tk.Label)
     available_phrases: List[tk.Label] = field(default_factory=list)
 
-    last_highlighted_digit_button: Union[int, None] = field(default=None)
-    last_highlighted_special_button: Union[int, None] = field(default=None)
+    highlighted_digit_button_index: Union[int, None] = field(default=None)
+    highlighted_special_button_index: Union[int, None] = field(default=None)
 
     def __post_init__(self):
         self._create_widgets()
+        self.switch_button_highlight(4)
+        self.switch_button_highlight(2)
+        self.switch_button_highlight(6)
+        self.switch_button_highlight(2,is_special_button=True)
+        self.switch_button_highlight(6)
+
+
 
     def initialize_mainloop(self):
         """
@@ -30,14 +37,27 @@ class Gui:
         self.root.resizable(False, False)
         self.root.mainloop()
 
-    def switch_button_highlight(self):
-        pass
+    def switch_button_highlight(self, button_index, is_special_button=False):
+        if self.highlighted_digit_button_index or self.highlighted_special_button_index:
+            self._remove_button_hover()
+        if is_special_button:
+            self._change_button_highlight(button_index, self.special_buttons)
+            self.highlighted_special_button_index = button_index
+        else:
+            self._change_button_highlight(button_index, self.digit_buttons)
+            self.highlighted_digit_button_index = button_index
 
-    def _apply_button_highlight(self):
-        pass
+    def _change_button_highlight(self, button_index, button_list, highlight=True):
+        button_list[button_index].config(**self.get_button_styles(highlight=highlight))
 
     def _remove_button_hover(self):
-        pass
+        if self.highlighted_special_button_index:
+            self._change_button_highlight(self.highlighted_special_button_index, self.special_buttons, highlight=False)
+        if self.highlighted_digit_button_index:
+            self._change_button_highlight(self.highlighted_digit_button_index, self.digit_buttons, highlight=False)
+
+        self.highlighted_special_button_index=None
+        self.highlighted_special_button_index=None
 
     def update_actual_phrase(self):
         pass
@@ -54,6 +74,21 @@ class Gui:
 
     def _remove_label_highlight(self):
         pass
+
+    @staticmethod
+    def get_button_styles(highlight: bool = False) -> dict:
+        default_button = {
+            "disabledforeground": "#333333",
+            "bg": "#ffffff",
+            "state": tk.DISABLED,
+            "width": 5,
+            "font": ('Arial', 12)
+        }
+        highlight_button = {
+            "disabledforeground": "#ffffff",
+            "bg": "#333333"
+        }
+        return highlight_button if highlight else default_button
 
     def _create_widgets(self):
         """
@@ -91,21 +126,19 @@ class Gui:
             available_phrase.grid(row=0, column=col, padx=20, pady=5)
             self.available_phrases.append(available_phrase)
 
-        # Buttons
+        # Digit buttons
         digit_labels_table = create_digit_rows_from_keymap(numpad_character_keys_map)
-        digit_keys = []
         for row in range(len(digit_labels_table)):
             for col in range(len(digit_labels_table[row])):
                 i = digit_labels_table[row][col]
-                b = tk.Button(digit_buttons_frame, text=str(i), state=tk.DISABLED, width=5, font=('Arial', 12))
-                b.grid(row=row + 1, column=col, padx=5, pady=5)
-                digit_keys.append(b)
+                digit_button = tk.Button(digit_buttons_frame, text=str(i), **self.get_button_styles())
+                digit_button.grid(row=row + 1, column=col, padx=5, pady=5)
+                self.digit_buttons.append(digit_button)
 
         # Special Buttons
 
         # Space
-        space_button = tk.Button(special_buttons_frame, text="0", state=tk.DISABLED, width=5,
-                                 font=('Arial', 11))
+        space_button = tk.Button(special_buttons_frame, text="0", **self.get_button_styles())
         space_button.grid(row=0, column=0, padx=5, pady=5)
         self.special_buttons.append(space_button)
 
@@ -113,8 +146,7 @@ class Gui:
                                font=('Arial', 10, 'normal'))
         space_label.grid(row=0, column=1, padx=5, pady=5)
         # Switch actual phrase
-        switch_actual_phrase_button = tk.Button(special_buttons_frame, text=".", state=tk.DISABLED, width=5,
-                                                font=('Arial', 11, "bold"))
+        switch_actual_phrase_button = tk.Button(special_buttons_frame, text=",",**self.get_button_styles())
         switch_actual_phrase_button.grid(row=1, column=0, padx=5, pady=5)
         self.special_buttons.append(switch_actual_phrase_button)
 
@@ -122,7 +154,7 @@ class Gui:
                                               font=('Arial', 10, 'normal'))
         switch_actual_phrase_label.grid(row=1, column=1, padx=5, pady=5)
         # Backspace
-        backspace_button = tk.Button(special_buttons_frame, text="+", state=tk.DISABLED, width=5, font=('Arial', 12))
+        backspace_button = tk.Button(special_buttons_frame, text="+",**self.get_button_styles())
         backspace_button.grid(row=2, column=0, padx=5, pady=5)
         self.special_buttons.append(backspace_button)
 
