@@ -1,37 +1,138 @@
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Union
 
 from t9keyboard.keyboard_keymap import numpad_character_keys_map
 import tkinter as tk
 import tkinter.ttk as ttk
 
 
+@dataclass
 class Gui:
-    digit_buttons: List
-    special_buttons: List
-    actual_phrase: tk.Label
-    hint_phrases: List[tk.Label]
-    last_button_hover_index: int
+    root: tk.Tk = field(default=tk.Tk())
 
-    def switch_hoover(self):
+    digit_buttons: List[tk.Button] = field(default_factory=list)
+    special_buttons: List[tk.Button] = field(default_factory=list)
+    actual_phrase: tk.Label = field(default=tk.Label)
+    available_phrases: List[tk.Label] = field(default_factory=list)
+
+    last_highlighted_digit_button: Union[int, None] = field(default=None)
+    last_highlighted_special_button: Union[int, None] = field(default=None)
+
+    def __post_init__(self):
+        self._create_widgets()
+
+    def initialize_mainloop(self):
+        """
+        Add always on-top, title and then initialize mainloop of Tk.
+        """
+        self.root.wm_attributes("-topmost", 1)
+        self.root.title("T9 Numeric pad keyboard")
+        self.root.resizable(False, False)
+        self.root.mainloop()
+
+    def switch_button_highlight(self):
+        pass
+
+    def _apply_button_highlight(self):
+        pass
+
+    def _remove_button_hover(self):
         pass
 
     def update_actual_phrase(self):
         pass
 
-    def update_phrase_hints(self):
+    def update_available_phrases(self):
         pass
 
+    def update_available_phrases_chosen_element(self):
+        # TODO: Apply font=('Arial', 11, 'bold'), bg="#a4aab3",fg="#ffffff" for actually choosed phrase
+        pass
 
-class GuiEngine:
-    # could be method
-    pass
+    def _apply_label_highlight(self):
+        pass
+
+    def _remove_label_highlight(self):
+        pass
+
+    def _create_widgets(self):
+        """
+        Method for creating all tkinter UI elements.
+        First create frames, then fill them up with labels and buttons.
+        Accessible widgets will be stored in proper class fields.
+
+        Class fields which would be filled:
+            digit_buttons: List[tk.Button]
+            special_buttons: List[tk.Button]
+            actual_phrase: tk.Label
+            available_phrases: List[tk.Label]
+        """
+        # Layout Frames
+        actual_phrase_labels_frame = tk.LabelFrame(self.root, text="Actual phrase", padx=20, pady=5)
+        actual_phrase_labels_frame.grid(row=0, column=0)
+
+        available_phrases_labels_frame = tk.LabelFrame(self.root, text="Available phrases", padx=20, pady=5, )
+        available_phrases_labels_frame.grid(row=1, column=0)
+
+        digit_buttons_frame = tk.LabelFrame(self.root, text="Digit keys", padx=20, pady=20)
+        digit_buttons_frame.grid(row=2, column=0)
+
+        special_buttons_frame = tk.LabelFrame(self.root, text="Special keys", padx=20, pady=20)
+        special_buttons_frame.grid(row=3, column=0)
+
+        # Actual phrase label
+        actual_phrase = tk.Label(actual_phrase_labels_frame, text="Chosen", font=('Arial', 14))
+        actual_phrase.grid(row=0, column=1, padx=20, pady=5)
+        self.actual_phrase = actual_phrase
+
+        # Available phrases
+        for col in range(5):
+            available_phrase = tk.Label(available_phrases_labels_frame, text="Phrase", font=('Arial', 10, 'normal'))
+            available_phrase.grid(row=0, column=col, padx=20, pady=5)
+            self.available_phrases.append(available_phrase)
+
+        # Buttons
+        digit_labels_table = create_digit_rows_from_keymap(numpad_character_keys_map)
+        digit_keys = []
+        for row in range(len(digit_labels_table)):
+            for col in range(len(digit_labels_table[row])):
+                i = digit_labels_table[row][col]
+                b = tk.Button(digit_buttons_frame, text=str(i), state=tk.DISABLED, width=5, font=('Arial', 12))
+                b.grid(row=row + 1, column=col, padx=5, pady=5)
+                digit_keys.append(b)
+
+        # Special Buttons
+
+        # Space
+        space_button = tk.Button(special_buttons_frame, text="0", state=tk.DISABLED, width=5,
+                                 font=('Arial', 11))
+        space_button.grid(row=0, column=0, padx=5, pady=5)
+        self.special_buttons.append(space_button)
+
+        space_label = tk.Label(special_buttons_frame, text="Space / Accept word",
+                               font=('Arial', 10, 'normal'))
+        space_label.grid(row=0, column=1, padx=5, pady=5)
+        # Switch actual phrase
+        switch_actual_phrase_button = tk.Button(special_buttons_frame, text=".", state=tk.DISABLED, width=5,
+                                                font=('Arial', 11, "bold"))
+        switch_actual_phrase_button.grid(row=1, column=0, padx=5, pady=5)
+        self.special_buttons.append(switch_actual_phrase_button)
+
+        switch_actual_phrase_label = tk.Label(special_buttons_frame, text="Switch actual phrase",
+                                              font=('Arial', 10, 'normal'))
+        switch_actual_phrase_label.grid(row=1, column=1, padx=5, pady=5)
+        # Backspace
+        backspace_button = tk.Button(special_buttons_frame, text="+", state=tk.DISABLED, width=5, font=('Arial', 12))
+        backspace_button.grid(row=2, column=0, padx=5, pady=5)
+        self.special_buttons.append(backspace_button)
+
+        backspace_label = tk.Label(special_buttons_frame, text="Backspace", font=('Arial', 10, 'normal'))
+        backspace_label.grid(row=2, column=1, padx=5, pady=5)
 
 
-root = tk.Tk()
-root.wm_attributes("-topmost", 1)
-
-def digit_rows(keys_map: dict, row_length: int = 3) -> List[List[str]]:
+def create_digit_rows_from_keymap(keys_map: dict, row_length: int = 3) -> List[List[str]]:
     """
+    Helper method for GUI.
     Take keymap dictionary, split it into 3x3 structure where each list contains label for button.
     Label for button is a string which glue together 'key+newline+values separated by space'.
     Structure:
@@ -54,8 +155,9 @@ def digit_rows(keys_map: dict, row_length: int = 3) -> List[List[str]]:
 
 def create_key_labels(keys: dict) -> List[str]:
     """
-    Create label for button
-    Label for button is a string which glue together 'key+newline+values separated by space'.
+    Helper method for GUI.
+    Create label for button.
+    Button label is a string which glue together 'key+newline+values separated by space'.
     :param keys:
     :return:
     """
@@ -65,83 +167,18 @@ def create_key_labels(keys: dict) -> List[str]:
     return key_labels
 
 
-def change_hoover_button_state(button: tk.Button):
-    # button.config(bg=f'#{randrange(100000, 666666)}', fg='blue')
-    # button.config(style='hovered.TButton')
-    # button.config(bg=f'#{randrange(100000, 666666)}', fg='blue')
-    button.config(bg='blue')
+# def change_hoover_button_state(button: tk.Button):
+#     # button.config(bg=f'#{randrange(100000, 666666)}', fg='blue')
+#     # button.config(style='hovered.TButton')
+#     # button.config(bg=f'#{randrange(100000, 666666)}', fg='blue')
+#     button.config(bg='blue')
 
-
-# Layout Frames
-actual_phrase_labels_frame = tk.LabelFrame(root, text="Actual phrase", padx=20, pady=5)
-actual_phrase_labels_frame.grid(row=0, column=0)
-
-available_phrases_labels_frame = tk.LabelFrame(root, text="Available phrases", padx=20, pady=5, )
-available_phrases_labels_frame.grid(row=1, column=0)
-
-digit_buttons_frame = tk.LabelFrame(root, text="Digit keys", padx=20, pady=20)
-digit_buttons_frame.grid(row=2, column=0)
-
-special_buttons_frame = tk.LabelFrame(root, text="Special keys", padx=20, pady=20)
-special_buttons_frame.grid(row=3, column=0)
-
-digit_labels_table = digit_rows(numpad_character_keys_map)
 
 # Default button styling
-style = ttk.Style(digit_buttons_frame)
-style.configure('TButton', font=('Arial', 9))
-style.configure('TLabel', font=('Arial', 9))
-# TODO:Store gui elements in object
-
-# offset_digit_buttons=len(digit_labels_table)+actual_label_rows_number
-# Actual phrase label
-actual_phrase = tk.Label(actual_phrase_labels_frame, text="Choosed", font=('Arial', 14))
-actual_phrase.grid(row=0, column=1, padx=20, pady=5)
-
-# Available phrases
-
-# Hin
-available_phrases=[]
-for col in range(5):
-    hint_phrase = tk.Label(available_phrases_labels_frame, text="Phrase", font=('Arial', 10, 'normal'))
-    hint_phrase.grid(row=0, column=col, padx=20, pady=5)
-    available_phrases.append(hint_phrase)
-
-# hint_phrase_1 = tk.Label(available_phrases_labels_frame, text="Okoń", font=('Arial', 11, 'bold'), bg="#a4aab3",
-#                          fg="#ffffff")
-# hint_phrase_1.grid(row=0, column=0, padx=20, pady=5)
-# hint_phrase_2 = tk.Label(available_phrases_labels_frame, text="Phrase", font=('Arial', 10, 'normal'))
-# hint_phrase_2.grid(row=0, column=1, padx=20, pady=5)
-# hint_phrase_3 = tk.Label(available_phrases_labels_frame, text="Phrase", font=('Arial', 10, 'normal'))
-# hint_phrase_3.grid(row=0, column=2, padx=20, pady=5)
-# hint_phrase_4 = tk.Label(available_phrases_labels_frame, text="Phrase", font=('Arial', 10, 'normal'))
-# hint_phrase_4.grid(row=0, column=3, padx=20, pady=5)
-# hint_phrase_5 = tk.Label(available_phrases_labels_frame, text="Phrase", font=('Arial', 10, 'normal'))
-# hint_phrase_5.grid(row=0, column=4, padx=20, pady=5)
-
-# Buttons
-digit_keys = []
-for row in range(len(digit_labels_table)):
-    for col in range(len(digit_labels_table[row])):
-        i = digit_labels_table[row][col]
-        b = tk.Button(digit_buttons_frame, text=str(i), state=tk.DISABLED, width=5, font=('Arial', 12))
-        b.grid(row=row + 1, column=col, padx=5, pady=5)
-        digit_keys.append(b)
-
-# Special Buttons
-switch_actual_phrase_button = tk.Button(special_buttons_frame, text=".", state=tk.DISABLED, width=5,
-                                        font=('Arial', 11, "bold"))
-switch_actual_phrase_button.grid(row=1, column=0, padx=5, pady=5)
-
-switch_actual_phrase_label = tk.Label(special_buttons_frame, text="Switch actual phrase", font=('Arial', 10, 'normal'))
-switch_actual_phrase_label.grid(row=1, column=1, padx=5, pady=5)
-
-backspace_button = tk.Button(special_buttons_frame, text="+", state=tk.DISABLED, width=5, font=('Arial', 12))
-backspace_button.grid(row=2, column=0, padx=5, pady=5)
-
-backspace_label = tk.Label(special_buttons_frame, text="Backspace", font=('Arial', 10, 'normal'))
-backspace_label.grid(row=2, column=1, padx=5, pady=5)
-
+# style = ttk.Style(digit_buttons_frame)
+# style.configure('TButton', font=('Arial', 9))
+# style.configure('TLabel', font=('Arial', 9))
+gui = Gui()
+gui.initialize_mainloop()
 # method for applying style
-change_hoover_button_state(digit_keys[0])
-root.mainloop()
+# change_hoover_button_state(digit_keys[0])
