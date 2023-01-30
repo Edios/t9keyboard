@@ -115,19 +115,21 @@ class T9Mode:
         :param mapped_key: NumpadKey object corresponding with pressed key's
         :return:
         """
+
+
         if mapped_key.is_special_key:
             self.perform_special_key_action(mapped_key)
         else:
+            self.gui.apply_button_highlight(map_digit_to_index_in_map(mapped_key.keypad_button, numpad_character_keys_map))
             self.perform_alphabetical_key_action(mapped_key)
-        # TODO: Remove this helper printout when display method will be ready
-        #print_keyboard_layout_helper()
+
+        # TODO: Separate it to method
         if not self.trie_search_results.is_empty():
             print(f"Top search results: {self.trie_search_results.get_top_phrases()}")
             print(f"Actual chosen phrase: {self.trie_search_results.get_current_chosen_phrase()}")
-
             self.gui.update_available_phrases(self.trie_search_results.get_top_phrases())
             self.gui.update_actual_phrase(self.trie_search_results.get_current_chosen_phrase().word)
-            if self.key_sequence: self.gui.apply_button_highlight(map_digit_to_index_in_map(self.key_sequence[-1].keypad_button,numpad_character_keys_map))
+
         else:
             print("No search result found.")
 
@@ -259,6 +261,8 @@ class T9Mode:
                 When space is pressed, write word as keyboard output.
                 Do nothing if trie_search_results is empty.
                 """
+                # TODO: This need to clear actual and available phrases
+                self.gui.apply_button_highlight(0,is_special_button=True)
                 if self.trie_search_results.is_empty():
                     print("Search result is empty, no word to be written")
                     return
@@ -272,6 +276,9 @@ class T9Mode:
                 """
                 Switch actual hint value if search result is not empty.
                 """
+                self.gui.apply_button_highlight(1, is_special_button=True)
+                # TODO: Implement method for determining index for highlighted element
+                #self.gui.switch_phrases_highlighted_element(self.trie_search_results.get_current_chosen_phrase())
                 if not self.trie_search_results.is_empty():
                     self.trie_search_results.increase_phrase_counter()
             case SpecialAction.backspace:
@@ -279,7 +286,8 @@ class T9Mode:
                 Delete last character by sending backspace.
                 If whole word was just typed, delete it by repeating backspace key, remove that word from finished_words. 
                 """
-                if not self.word_processor.queued_word and self.word_processor.finished_words:
+                self.gui.apply_button_highlight(2, is_special_button=True)
+                if not self.word_processor.queued_word and self.word_processor.finished_words and self.key_sequence:
                     self.writer.backspace(
                         repeat_count=self.word_processor.count_last_word_length(count_additional_space=True)
                     )
@@ -287,7 +295,10 @@ class T9Mode:
                     self.key_sequence.clear()
                 else:
                     self.writer.backspace()
-                    self.key_sequence.pop()
+                    try:
+                        self.key_sequence.pop()
+                    except IndexError:
+                        print("KeySequence is empty. ")
             case None:
                 print("Special Key action not implemented")
 

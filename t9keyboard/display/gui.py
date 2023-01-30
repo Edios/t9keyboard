@@ -87,9 +87,9 @@ class Gui:
         Change button style basing on set highlighted_[X]_button_index which indicates what element is now highlighted.
         :return:
         """
-        if self.highlighted_special_button_index:
+        if isinstance(self.highlighted_special_button_index, int):
             self._change_button_highlight(self.highlighted_special_button_index, self.special_buttons, highlight=False)
-        if self.highlighted_digit_button_index:
+        if isinstance(self.highlighted_digit_button_index, int):
             self._change_button_highlight(self.highlighted_digit_button_index, self.digit_buttons, highlight=False)
 
         self.highlighted_special_button_index = None
@@ -214,9 +214,9 @@ class Gui:
         actual_phrase_labels_frame = tk.LabelFrame(self.root, text="Actual phrase", padx=20, pady=5)
         actual_phrase_labels_frame.grid(row=0, column=0)
 
-        available_phrases_labels_frame = tk.LabelFrame(self.root, text="Available phrases", padx=20, pady=5, )
+        available_phrases_labels_frame = tk.LabelFrame(self.root, text="Available phrases", padx=20, pady=5,width=540,height=80)
         available_phrases_labels_frame.grid(row=1, column=0)
-
+        available_phrases_labels_frame.grid_propagate(False)
         digit_buttons_frame = tk.LabelFrame(self.root, text="Digit keys", padx=20, pady=20)
         digit_buttons_frame.grid(row=2, column=0)
 
