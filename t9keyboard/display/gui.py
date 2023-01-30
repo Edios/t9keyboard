@@ -17,24 +17,41 @@ class Gui:
 
     highlighted_digit_button_index: Union[int, None] = field(default=None)
     highlighted_special_button_index: Union[int, None] = field(default=None)
+    highlighted_phrase_label_index: Union[int, None] = field(default=None)
 
     def __post_init__(self):
         self._create_widgets()
-        self.switch_button_highlight(4)
-        self.switch_button_highlight(2)
-        self.switch_button_highlight(6)
-        self.switch_button_highlight(2,is_special_button=True)
-        self.switch_button_highlight(6)
 
+        # TODO: This section can be converted to unit test with checking element properties (element.cget())
+        # Button Test
+        # self.switch_button_highlight(4)
+        # self.switch_button_highlight(2)
+        # self.switch_button_highlight(6)
+        # self.switch_button_highlight(2,is_special_button=True)
+        # self.switch_button_highlight(6)
 
+        # # Label Test
+        # self.switch_phrases_highlighted_element(2)
+        # self.switch_phrases_highlighted_element(1)
+        #
+        # # Actual phrase Test
+        # self.update_actual_phrase('okay')
+        #
+        # #Available phrases Test
+        # test1=['Buddy','okay','Go','Abra','Kadabra']
+        # self.update_available_phrases(test1)
+        # test2 = ['okay','Buddy', 'Gotta']
+        # self.switch_phrases_highlighted_element(0)
+        # self.update_available_phrases(test2)
 
     def initialize_mainloop(self):
         """
-        Add always on-top, title and then initialize mainloop of Tk.
+        Add windows parameters and then initialize mainloop of Tk.
         """
         self.root.wm_attributes("-topmost", 1)
         self.root.title("T9 Numeric pad keyboard")
         self.root.resizable(False, False)
+        self.root.geometry("500x550")
         self.root.mainloop()
 
     def switch_button_highlight(self, button_index, is_special_button=False):
@@ -56,27 +73,45 @@ class Gui:
         if self.highlighted_digit_button_index:
             self._change_button_highlight(self.highlighted_digit_button_index, self.digit_buttons, highlight=False)
 
-        self.highlighted_special_button_index=None
-        self.highlighted_special_button_index=None
+        self.highlighted_special_button_index = None
+        self.highlighted_special_button_index = None
 
-    def update_actual_phrase(self):
-        pass
+    def update_actual_phrase(self, word: str):
+        self.actual_phrase.config(text=word)
 
-    def update_available_phrases(self):
-        pass
+    def update_available_phrases(self, phrases: List[str]):
+        if phrases.__len__() < self.available_phrases.__len__():
+            differance = self.available_phrases.__len__() - phrases.__len__()
+            for _ in range(differance):
+                phrases.append("        ")
+        for counter, phrase in enumerate(phrases):
+            self._change_phrase_label_text(phrase, counter)
 
-    def update_available_phrases_chosen_element(self):
-        # TODO: Apply font=('Arial', 11, 'bold'), bg="#a4aab3",fg="#ffffff" for actually choosed phrase
-        pass
+    def _change_phrase_label_text(self, label_text: str, label_index: int):
+        self.available_phrases[label_index].config(text=label_text)
 
-    def _apply_label_highlight(self):
-        pass
+    def switch_phrases_highlighted_element(self, label_index):
+        if self.highlighted_phrase_label_index:
+            self._remove_label_highlight()
+        self._change_label_highlight(label_index)
+        self.highlighted_phrase_label_index = label_index
+
+    def _change_label_highlight(self, label_index: int, highlight=True):
+        self.available_phrases[label_index].config(**self.get_label_styles(highlight=highlight))
 
     def _remove_label_highlight(self):
-        pass
+        if self.highlighted_phrase_label_index:
+            self._change_label_highlight(self.highlighted_phrase_label_index, highlight=False)
 
     @staticmethod
     def get_button_styles(highlight: bool = False) -> dict:
+        """
+        Get styles for button.
+        Intention for this class is to feed object button as kwargs:
+            Usage:
+                Button(root,**get_button_styles())
+        :param highlight: Choose if method should return style for highlighted button
+        """
         default_button = {
             "disabledforeground": "#333333",
             "bg": "#ffffff",
@@ -85,10 +120,30 @@ class Gui:
             "font": ('Arial', 12)
         }
         highlight_button = {
-            "disabledforeground": "#ffffff",
+            "fg": "#ffffff",
             "bg": "#333333"
         }
         return highlight_button if highlight else default_button
+
+    @staticmethod
+    def get_label_styles(highlight: bool = False) -> dict:
+        """
+        Get styles for Label.
+        Intention for this class is to feed object button as kwargs:
+            Usage:
+                Label(root,**get_button_styles())
+        :param highlight: Choose if method should return style for highlighted label
+        """
+        default_label = {
+            "font": ('Arial', 11),
+            "bg": "SystemButtonFace",
+            "fg": "#000000"
+        }
+        highlight_label = {
+            "fg": "#ffffff",
+            "bg": "#333333"
+        }
+        return highlight_label if highlight else default_label
 
     def _create_widgets(self):
         """
@@ -122,7 +177,8 @@ class Gui:
 
         # Available phrases
         for col in range(5):
-            available_phrase = tk.Label(available_phrases_labels_frame, text="Phrase", font=('Arial', 10, 'normal'))
+            available_phrase = tk.Label(available_phrases_labels_frame, text="Phrase", **self.get_label_styles(),
+                                        padx=5, pady=5, )
             available_phrase.grid(row=0, column=col, padx=20, pady=5)
             self.available_phrases.append(available_phrase)
 
@@ -143,22 +199,22 @@ class Gui:
         self.special_buttons.append(space_button)
 
         space_label = tk.Label(special_buttons_frame, text="Space / Accept word",
-                               font=('Arial', 10, 'normal'))
+                               **self.get_label_styles())
         space_label.grid(row=0, column=1, padx=5, pady=5)
         # Switch actual phrase
-        switch_actual_phrase_button = tk.Button(special_buttons_frame, text=",",**self.get_button_styles())
+        switch_actual_phrase_button = tk.Button(special_buttons_frame, text=",", **self.get_button_styles())
         switch_actual_phrase_button.grid(row=1, column=0, padx=5, pady=5)
         self.special_buttons.append(switch_actual_phrase_button)
 
         switch_actual_phrase_label = tk.Label(special_buttons_frame, text="Switch actual phrase",
-                                              font=('Arial', 10, 'normal'))
+                                              **self.get_label_styles())
         switch_actual_phrase_label.grid(row=1, column=1, padx=5, pady=5)
         # Backspace
-        backspace_button = tk.Button(special_buttons_frame, text="+",**self.get_button_styles())
+        backspace_button = tk.Button(special_buttons_frame, text="+", **self.get_button_styles())
         backspace_button.grid(row=2, column=0, padx=5, pady=5)
         self.special_buttons.append(backspace_button)
 
-        backspace_label = tk.Label(special_buttons_frame, text="Backspace", font=('Arial', 10, 'normal'))
+        backspace_label = tk.Label(special_buttons_frame, text="Backspace", **self.get_label_styles())
         backspace_label.grid(row=2, column=1, padx=5, pady=5)
 
 
@@ -197,20 +253,3 @@ def create_key_labels(keys: dict) -> List[str]:
     for key, value in keys.items():
         key_labels.append(f"{key}\n{' '.join(value)}")
     return key_labels
-
-
-# def change_hoover_button_state(button: tk.Button):
-#     # button.config(bg=f'#{randrange(100000, 666666)}', fg='blue')
-#     # button.config(style='hovered.TButton')
-#     # button.config(bg=f'#{randrange(100000, 666666)}', fg='blue')
-#     button.config(bg='blue')
-
-
-# Default button styling
-# style = ttk.Style(digit_buttons_frame)
-# style.configure('TButton', font=('Arial', 9))
-# style.configure('TLabel', font=('Arial', 9))
-gui = Gui()
-gui.initialize_mainloop()
-# method for applying style
-# change_hoover_button_state(digit_keys[0])
