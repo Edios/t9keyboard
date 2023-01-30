@@ -54,7 +54,15 @@ class Gui:
         self.root.geometry("500x550")
         self.root.mainloop()
 
-    def switch_button_highlight(self, button_index, is_special_button=False):
+    def apply_button_highlight(self, button_index, is_special_button=False):
+        """
+        Set highlight for button.
+        If there's existing highlight on any button, get rid of it.
+        By default, method uses digit list.
+        :param button_index: List index of button to be highlighted
+        :param is_special_button: Use special buttons List. By default, digit list is used.
+        :return:
+        """
         if self.highlighted_digit_button_index or self.highlighted_special_button_index:
             self._remove_button_hover()
         if is_special_button:
@@ -65,6 +73,13 @@ class Gui:
             self.highlighted_digit_button_index = button_index
 
     def _change_button_highlight(self, button_index, button_list, highlight=True):
+        """
+        Apply button styles dictionary as **kwargs for Button widget object.
+        :param button_index: button index in button_list
+        :param button_list: Button list to use
+        :param highlight: Determine what style of button will be applied (Default / Highlighted)
+        :return:
+        """
         button_list[button_index].config(**self.get_button_styles(highlight=highlight))
 
     def _remove_button_hover(self):
@@ -77,9 +92,20 @@ class Gui:
         self.highlighted_special_button_index = None
 
     def update_actual_phrase(self, word: str):
+        """
+        Set actual phrase label text parameter.
+        :param word: text to be chosen
+        :return:
+        """
         self.actual_phrase.config(text=word)
 
     def update_available_phrases(self, phrases: List[str]):
+        """
+        Update list of available_phrases with given phrases.
+        If given phrases count is less than available_phrases count, then fill rest of given fields by empty filler.
+        :param phrases: List of words to be updated
+        :return:
+        """
         if phrases.__len__() < self.available_phrases.__len__():
             differance = self.available_phrases.__len__() - phrases.__len__()
             for _ in range(differance):
@@ -88,20 +114,43 @@ class Gui:
             self._change_phrase_label_text(phrase, counter)
 
     def _change_phrase_label_text(self, label_text: str, label_index: int):
+        """
+        Change available_phrase Label element text parameter.
+        :param label_text: Text to be applied
+        :param label_index: List index of element to be changed
+        :return:
+        """
         self.available_phrases[label_index].config(text=label_text)
 
     def switch_phrases_highlighted_element(self, label_index):
+        """
+        Set highlight for Label object in available_phrases.
+        If there's existing highlight on any label, get rid of it.
+        :param label_index: Label index in available_phrases
+        :return:
+        """
         if self.highlighted_phrase_label_index:
             self._remove_label_highlight()
         self._change_label_highlight(label_index)
         self.highlighted_phrase_label_index = label_index
 
     def _change_label_highlight(self, label_index: int, highlight=True):
+        """
+        Apply label styles dictionary as **kwargs for Label widget object.
+        :param label_index: Label index in available_phrases
+        :param highlight: Determine what style of label will be applied (Default / Highlighted)
+        :return:
+        """
         self.available_phrases[label_index].config(**self.get_label_styles(highlight=highlight))
 
     def _remove_label_highlight(self):
+        """
+        Change label style basing on set highlighted_phrase_label_index which indicates what element is now highlighted.
+        :return:
+        """
         if self.highlighted_phrase_label_index:
             self._change_label_highlight(self.highlighted_phrase_label_index, highlight=False)
+        self.highlighted_phrase_label_index = None
 
     @staticmethod
     def get_button_styles(highlight: bool = False) -> dict:
