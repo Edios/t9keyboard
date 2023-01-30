@@ -83,6 +83,10 @@ class Gui:
         button_list[button_index].config(**self.get_button_styles(highlight=highlight))
 
     def _remove_button_hover(self):
+        """
+        Change button style basing on set highlighted_[X]_button_index which indicates what element is now highlighted.
+        :return:
+        """
         if self.highlighted_special_button_index:
             self._change_button_highlight(self.highlighted_special_button_index, self.special_buttons, highlight=False)
         if self.highlighted_digit_button_index:
