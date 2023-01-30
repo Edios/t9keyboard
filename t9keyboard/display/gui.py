@@ -51,7 +51,7 @@ class Gui:
         self.root.wm_attributes("-topmost", 1)
         self.root.title("T9 Numeric pad keyboard")
         self.root.resizable(False, False)
-        self.root.geometry("500x550")
+        self.root.geometry("540x610")
         self.root.mainloop()
 
     def apply_button_highlight(self, button_index, is_special_button=False):
@@ -173,7 +173,7 @@ class Gui:
             "font": ('Arial', 12)
         }
         highlight_button = {
-            "fg": "#ffffff",
+            "disabledforeground": "#ffffff",
             "bg": "#333333"
         }
         return highlight_button if highlight else default_button
@@ -269,6 +269,20 @@ class Gui:
 
         backspace_label = tk.Label(special_buttons_frame, text="Backspace", **self.get_label_styles())
         backspace_label.grid(row=2, column=1, padx=5, pady=5)
+
+
+def map_digit_to_index_in_map(digit: Union[str, int], keys_map: dict = numpad_character_keys_map) -> int:
+    """
+    Take digit and find its index in keys_map.
+    :param keys_map:
+    :param digit: Digit in range 1-9. Int will be converted to string.
+    :return:
+    """
+    digit = str(digit)
+    all_keys = [num for num in keys_map.keys()]
+    if digit in all_keys:
+        return all_keys.index(digit)
+    raise Exception('Could not find digit in key map')
 
 
 def create_digit_rows_from_keymap(keys_map: dict, row_length: int = 3) -> List[List[str]]:

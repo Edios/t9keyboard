@@ -5,7 +5,8 @@ import keyboard
 from keyboard import KeyboardEvent
 from pynput.keyboard import KeyCode
 
-from t9keyboard.engine.numpad_listener import numpad_listener
+from t9keyboard.display.gui import Gui
+from t9keyboard.engine.numpad_listener import numpad_listener, keyboard_listener
 from t9keyboard.keyboard_keymap import numpad_key_to_virtual_key_code_map
 from t9keyboard.t9_mode import T9Mode
 from t9keyboard.single_tap_keyboard_mode import SingleTapMode
@@ -21,18 +22,27 @@ class NumpadKeyboardMode(Enum):
 
 
 class NumpadKeyboard:
+    gui:Gui
     keyboard_mode: NumpadKeyboardMode
-
     single_tap_mode: SingleTapMode
     t9_mode: T9Mode
 
     def __init__(self):
-        # Default keyboard mode
+        self.gui=Gui()
+        # Default keyboard mode set to T9
         self.keyboard_mode = NumpadKeyboardMode.t9
-        self.t9_mode = T9Mode()
-
+        self.t9_mode = T9Mode(self.gui)
         # load single tap mode
         self.single_tap_mode = SingleTapMode()
+
+    def initialize_mainloop(self):
+        """
+        Initialize keyboard listener and gui mainloop
+        :return:
+        """
+        listener = numpad_listener(keyboard_actions.on_press_reaction)
+        self.gui.initialize_mainloop()
+        listener.stop()
 
     def on_press_reaction(self, keypad_button: KeyCode):
         """
@@ -40,7 +50,7 @@ class NumpadKeyboard:
         :param keypad_button: KeyboardEvent Pressed Keypad Key
         :return: None
         """
-        button=self.map_virtual_key_to_known_button(str(keypad_button.vk))
+        button = self.map_virtual_key_to_known_button(str(keypad_button.vk))
         if self.keyboard_mode == NumpadKeyboardMode.single_tap:
             mapped_key = self.single_tap_mode.map_key(button)
             self.single_tap_mode.handle_single_press_mode(mapped_key)
@@ -59,7 +69,8 @@ class NumpadKeyboard:
             case NumpadKeyboardMode.single_tap:
                 self.keyboard_mode = NumpadKeyboardMode.t9
 
-    def map_virtual_key_to_known_button(self, key:str)->str:
+    @staticmethod
+    def map_virtual_key_to_known_button(key: str) -> str:
         """
         Convert Virtual-Key Code to numpad character
         :return: Known button from map
@@ -70,7 +81,7 @@ class NumpadKeyboard:
 
 
 if __name__ == '__main__':
-    keyboard_actions = NumpadKeyboard()
 
-    #keyboard.on_press(keyboard_actions.on_press_reaction)
-    numpad_listener(keyboard_actions.on_press_reaction)
+    keyboard_actions = NumpadKeyboard()
+    keyboard_actions.initialize_mainloop()
+    # TODO: Make NumpadKeyboard method from this:

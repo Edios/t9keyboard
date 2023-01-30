@@ -7,6 +7,7 @@ from typing import List, Type, Union
 
 import keyboard
 
+from t9keyboard.display.gui import Gui, map_digit_to_index_in_map
 from t9keyboard.engine.keyboard_writer import KeyboardWriter
 from t9keyboard.engine.word_processor import WordProcessor
 from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
@@ -91,9 +92,10 @@ class T9Mode:
 
     # last_pressed_button: Union[NumpadKey, None]
 
-    def __init__(self, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
+    def __init__(self,gui:Gui=None, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
         # Initialize trie engine - use default one if not given
         self.last_pressed_button = None
+        self.gui = gui if gui else Gui()
         self.trie_engine = trie if trie else Trie()
         self.writer = KeyboardWriter()
         self.word_processor = WordProcessor()
@@ -118,10 +120,14 @@ class T9Mode:
         else:
             self.perform_alphabetical_key_action(mapped_key)
         # TODO: Remove this helper printout when display method will be ready
-        print_keyboard_layout_helper()
+        #print_keyboard_layout_helper()
         if not self.trie_search_results.is_empty():
             print(f"Top search results: {self.trie_search_results.get_top_phrases()}")
             print(f"Actual chosen phrase: {self.trie_search_results.get_current_chosen_phrase()}")
+
+            self.gui.update_available_phrases(self.trie_search_results.get_top_phrases())
+            self.gui.update_actual_phrase(self.trie_search_results.get_current_chosen_phrase().word)
+            if self.key_sequence: self.gui.apply_button_highlight(map_digit_to_index_in_map(self.key_sequence[-1].keypad_button,numpad_character_keys_map))
         else:
             print("No search result found.")
 
