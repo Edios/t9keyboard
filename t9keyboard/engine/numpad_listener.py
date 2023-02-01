@@ -31,9 +31,9 @@ def keyboard_listener(handled_method=None):
 
     def win32_event_filter(_, data):
         if hasattr(data, 'vkCode') and is_numpad_key(data.vkCode):
-            listener._suppress = True
+            keyboard_listener._suppress = True
         else:
-            listener._suppress = False
+            keyboard_listener._suppress = False
         return True
 
     # it suppress only numpad
@@ -50,9 +50,11 @@ def method_to_handle(key: KeyCode):
 
 
 def numpad_listener(handled_method):
-    global listener
-    listener = keyboard_listener(handled_method=handled_method)
-    with listener as ml:
-        ml.join()
+    global keyboard_listener
+    keyboard_listener = keyboard_listener(handled_method=handled_method)
+    keyboard_listener.start()
+    keyboard_listener.wait()
+    return keyboard_listener
+
 # TODO: method_to_handle can be used to test this piece of code
 # numpad_listner(method_to_handle)

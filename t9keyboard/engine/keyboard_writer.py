@@ -1,5 +1,6 @@
 from pynput.keyboard import Controller, Key
 
+
 class KeyboardWriter:
     controller: Controller
 
@@ -28,7 +29,8 @@ class KeyboardWriter:
         Send space key.
         """
         self.send(Key.backspace)
-    def send(self,key:Key):
+
+    def send(self, key: Key):
         """
         Send keyboard key.
         :param key: Key obj to be sent
