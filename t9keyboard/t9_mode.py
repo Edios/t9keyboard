@@ -1,18 +1,13 @@
 import operator
-import time
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
-from typing import List, Type, Union
-
-import keyboard
-
+from typing import List
 from t9keyboard.display.gui import Gui, map_digit_to_index_in_map
 from t9keyboard.engine.keyboard_writer import KeyboardWriter
 from t9keyboard.engine.word_processor import WordProcessor
 from t9keyboard.keyboard_keymap import numpad_character_keys_map, numpad_keyboard_special_keys_map, SpecialAction
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
-from t9keyboard.display.display import print_keyboard_layout_helper
 
 
 @dataclass
@@ -25,7 +20,7 @@ class NumpadKey:
 @dataclass
 class SearchResults:
     phrase_counter: int = field(default=0)
-    phrase_counter_limit: int = field(default=5)
+    phrase_counter_limit: int = field(default=4)
     search_phrases: List = field(default_factory=lambda: [])
 
     def get_current_chosen_phrase(self) -> SearchPhrase:
@@ -69,7 +64,7 @@ class SearchResults:
         Get slice of search_phrases list with stop value of phrase_counter_limit.
         :return:
         """
-        return self.search_phrases[slice(0, self.phrase_counter_limit)]
+        return self.search_phrases[slice(0, self.phrase_counter_limit+1)]
 
     def is_empty(self) -> bool:
         """
@@ -92,7 +87,7 @@ class T9Mode:
 
     # last_pressed_button: Union[NumpadKey, None]
 
-    def __init__(self,gui:Gui=None, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
+    def __init__(self, gui: Gui = None, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
         # Initialize trie engine - use default one if not given
         self.last_pressed_button = None
         self.gui = gui if gui else Gui()
@@ -116,22 +111,13 @@ class T9Mode:
         :return:
         """
 
-
         if mapped_key.is_special_key:
             self.perform_special_key_action(mapped_key)
         else:
-            self.gui.apply_button_highlight(map_digit_to_index_in_map(mapped_key.keypad_button, numpad_character_keys_map))
+            self.update_gui_press_digit_button(mapped_key.keypad_button)
             self.perform_alphabetical_key_action(mapped_key)
 
-        # TODO: Separate it to method
-        if not self.trie_search_results.is_empty():
-            print(f"Top search results: {self.trie_search_results.get_top_phrases()}")
-            print(f"Actual chosen phrase: {self.trie_search_results.get_current_chosen_phrase()}")
-            self.gui.update_available_phrases(self.trie_search_results.get_top_phrases())
-            self.gui.update_actual_phrase(self.trie_search_results.get_current_chosen_phrase().word)
-
-        else:
-            print("No search result found.")
+        self.update_gui_labels()
 
     def find_words(self, numbers: str) -> SearchResults:
         """
@@ -261,8 +247,8 @@ class T9Mode:
                 When space is pressed, write word as keyboard output.
                 Do nothing if trie_search_results is empty.
                 """
-                # TODO: This need to clear actual and available phrases
-                self.gui.apply_button_highlight(0,is_special_button=True)
+                self.gui.switch_phrases_highlighted_element(0)
+                self.gui.apply_button_highlight(0, is_special_button=True)
                 if self.trie_search_results.is_empty():
                     print("Search result is empty, no word to be written")
                     return
@@ -277,10 +263,9 @@ class T9Mode:
                 Switch actual hint value if search result is not empty.
                 """
                 self.gui.apply_button_highlight(1, is_special_button=True)
-                # TODO: Implement method for determining index for highlighted element
-                #self.gui.switch_phrases_highlighted_element(self.trie_search_results.get_current_chosen_phrase())
                 if not self.trie_search_results.is_empty():
                     self.trie_search_results.increase_phrase_counter()
+                    self.gui.switch_phrases_highlighted_element(self.trie_search_results.phrase_counter)
             case SpecialAction.backspace:
                 """
                 Delete last character by sending backspace.
@@ -308,13 +293,25 @@ class T9Mode:
         :return: String with digits from key sequence
         """
         return "".join([num.keypad_button for num in self.key_sequence])
-    #
-    # def store_last_pressed_key(self):
-    #     """
-    #     If key sequence is not empty, save last pressed key to last_pressed_button parameter.
-    #     """
-    #     if self.key_sequence:
-    #         self.last_pressed_button = self.key_sequence[-1]
+
+    def update_gui_labels(self):
+        """
+        If there are search result in trie_search_results then update gui object.
+        Do nothing if search results object .is_empty()
+        :return:
+        """
+        if not self.trie_search_results.is_empty():
+            self.gui.update_available_phrases(self.trie_search_results.get_top_phrases())
+            self.gui.update_actual_phrase(self.trie_search_results.get_current_chosen_phrase().word)
+
+    def update_gui_press_digit_button(self, keypad_button_digit: str):
+        """
+        Map digit to list index in gui, then use mapped value to apply button highlighted on gui.
+        :param keypad_button_digit:
+        :return:
+        """
+        self.gui.apply_button_highlight(map_digit_to_index_in_map(keypad_button_digit, numpad_character_keys_map))
+
 
 # TODO: move this as unit tests for T9Mode
 # t9_mode = T9Mode()

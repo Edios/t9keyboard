@@ -21,6 +21,8 @@ class Gui:
 
     def __post_init__(self):
         self._create_widgets()
+        # By default, phrase with index 0 is chosen
+        self.switch_phrases_highlighted_element(0)
 
         # TODO: This section can be converted to unit test with checking element properties (element.cget())
         # Button Test
@@ -126,15 +128,15 @@ class Gui:
         """
         self.available_phrases[label_index].config(text=label_text)
 
-    def switch_phrases_highlighted_element(self, label_index):
+    def switch_phrases_highlighted_element(self, label_index: int):
         """
         Set highlight for Label object in available_phrases.
         If there's existing highlight on any label, get rid of it.
         :param label_index: Label index in available_phrases
         :return:
         """
-        if self.highlighted_phrase_label_index:
-            self._remove_label_highlight()
+        if isinstance(self.highlighted_phrase_label_index, int):
+            self.remove_label_highlight()
         self._change_label_highlight(label_index)
         self.highlighted_phrase_label_index = label_index
 
@@ -147,12 +149,12 @@ class Gui:
         """
         self.available_phrases[label_index].config(**self.get_label_styles(highlight=highlight))
 
-    def _remove_label_highlight(self):
+    def remove_label_highlight(self):
         """
         Change label style basing on set highlighted_phrase_label_index which indicates what element is now highlighted.
         :return:
         """
-        if self.highlighted_phrase_label_index:
+        if isinstance(self.highlighted_phrase_label_index,int):
             self._change_label_highlight(self.highlighted_phrase_label_index, highlight=False)
         self.highlighted_phrase_label_index = None
 
@@ -214,7 +216,8 @@ class Gui:
         actual_phrase_labels_frame = tk.LabelFrame(self.root, text="Actual phrase", padx=20, pady=5)
         actual_phrase_labels_frame.grid(row=0, column=0)
 
-        available_phrases_labels_frame = tk.LabelFrame(self.root, text="Available phrases", padx=20, pady=5,width=540,height=80)
+        available_phrases_labels_frame = tk.LabelFrame(self.root, text="Available phrases", padx=20, pady=5, width=540,
+                                                       height=80)
         available_phrases_labels_frame.grid(row=1, column=0)
         available_phrases_labels_frame.grid_propagate(False)
         digit_buttons_frame = tk.LabelFrame(self.root, text="Digit keys", padx=20, pady=20)
