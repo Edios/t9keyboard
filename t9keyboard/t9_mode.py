@@ -52,19 +52,20 @@ class SearchResults:
         """
         self.search_phrases = sorted(self.search_phrases, key=operator.attrgetter('weight'), reverse=True)
 
-    def set_phrase_counter_limit(self, new_counter_limit: int):
+    def validate_phrase_counter_limit(self):
         """
-        Setter for phrase_counter_limit.
-        :param new_counter_limit: Value which will be set as new phrase_counter_limit
+        Check if phrase counter limit do not exceed list of search phrases length.
+        If possitive, set length as new phrase counter limit
         """
-        self.phrase_counter_limit = new_counter_limit
+        if self.phrase_counter_limit > self.search_phrases.__len__():
+            self.phrase_counter_limit = self.search_phrases.__len__()
 
     def get_top_phrases(self) -> List[str]:
         """
         Get slice of search_phrases list with stop value of phrase_counter_limit.
         :return:
         """
-        return self.search_phrases[slice(0, self.phrase_counter_limit+1)]
+        return self.search_phrases[slice(0, self.phrase_counter_limit + 1)]
 
     def is_empty(self) -> bool:
         """
@@ -72,6 +73,14 @@ class SearchResults:
         :return: Return True if its search_phrases is empty.
         """
         return True if not self.search_phrases else False
+
+    def clear_searched_phrases(self):
+        """
+        Clear search_phrases and counter.
+        :return:
+        """
+        self.search_phrases = []
+        self.phrase_counter = 0
 
 
 class T9Mode:
@@ -85,11 +94,8 @@ class T9Mode:
     word_processor: WordProcessor
     key_sequence: List[NumpadKey]
 
-    # last_pressed_button: Union[NumpadKey, None]
-
     def __init__(self, gui: Gui = None, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
         # Initialize trie engine - use default one if not given
-        self.last_pressed_button = None
         self.gui = gui if gui else Gui()
         self.trie_engine = trie if trie else Trie()
         self.writer = KeyboardWriter()
@@ -133,6 +139,8 @@ class T9Mode:
                 search_results.search_phrases.extend(found_phases)
             # Word list need to be sorted again
             search_results.sort()
+            # If length of phrases is below default phrase_counter_limit, change it to len of phrases list
+        search_results.validate_phrase_counter_limit()
         return search_results
 
     def load_word_dictionary_from_folder(self, directory_path: Path):
@@ -224,6 +232,9 @@ class T9Mode:
         for index, available_key in enumerate(self.available_keys):
             if key == available_key.keypad_button:
                 new_key_object = self.available_keys[index]
+                # WORKAROUND: Mark "7" as special key. It contains punctuation marks and need to be treated in
+                # different way.
+                if new_key_object.keypad_button == "7": new_key_object.is_special_key = True
                 return new_key_object
         raise Exception(f"Could not find {key} in available_keys.")
 
@@ -241,6 +252,7 @@ class T9Mode:
     def perform_special_key_action(self, mapped_key: NumpadKey):
         # WARNING: This requires python >3.10 (case matching method)
         action = getattr(SpecialAction, mapped_key.letters[0], None)
+        if not action and mapped_key.keypad_button == "7": action = SpecialAction.seven
         match action:
             case SpecialAction.space:
                 """
@@ -255,8 +267,8 @@ class T9Mode:
                 chosen_phrase = self.trie_search_results.get_current_chosen_phrase().word
                 self.word_processor.append_characters_to_queue(chosen_phrase)
                 self.word_processor.finish_queued_word()
-                self.writer.write(self.word_processor.get_last_word() + " ")
                 self.key_sequence.clear()
+                self.writer.write(self.word_processor.get_last_word(), add_space=True)
 
             case SpecialAction.switch_letter:
                 """
@@ -269,14 +281,15 @@ class T9Mode:
             case SpecialAction.backspace:
                 """
                 Delete last character by sending backspace.
-                If whole word was just typed, delete it by repeating backspace key, remove that word from finished_words. 
+                If whole word was just typed, delete it by repeating backspace key, remove that word from finished_words 
                 """
                 self.gui.apply_button_highlight(2, is_special_button=True)
                 if not self.word_processor.queued_word and self.word_processor.finished_words and self.key_sequence:
                     self.writer.backspace(
                         repeat_count=self.word_processor.count_last_word_length(count_additional_space=True)
                     )
-                    self.word_processor.remove_last_finished_word()
+                    self.word_processor.clear_word_processor_fields()
+                    self.trie_search_results.clear_searched_phrases()
                     self.key_sequence.clear()
                 else:
                     self.writer.backspace()
@@ -284,6 +297,19 @@ class T9Mode:
                         self.key_sequence.pop()
                     except IndexError:
                         print("KeySequence is empty. ")
+            case SpecialAction.seven:
+                """
+                Seven key is responsible for typing punctuation marks. Need to be treated in different way than 
+                other digits, that's why this button action is marked as special.
+                
+                As a simplified version - this key will only use dot.
+                """
+                self.gui.apply_button_highlight(0, is_special_button=False)
+                if self.key_sequence: self.key_sequence.clear()
+                self.word_processor.append_characters_to_queue(".")
+                self.word_processor.finish_queued_word()
+                #self.writer.backspace()
+                self.writer.write(self.word_processor.get_last_word(), add_space=True)
             case None:
                 print("Special Key action not implemented")
 
@@ -311,7 +337,6 @@ class T9Mode:
         :return:
         """
         self.gui.apply_button_highlight(map_digit_to_index_in_map(keypad_button_digit, numpad_character_keys_map))
-
 
 # TODO: move this as unit tests for T9Mode
 # t9_mode = T9Mode()
