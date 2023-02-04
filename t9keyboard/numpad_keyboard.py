@@ -5,7 +5,8 @@ import keyboard
 from keyboard import KeyboardEvent
 from pynput.keyboard import KeyCode
 
-from t9keyboard.engine.numpad_listener import numpad_listener
+from t9keyboard.display.gui import Gui
+from t9keyboard.engine.numpad_listener import numpad_listener, keyboard_listener
 from t9keyboard.keyboard_keymap import numpad_key_to_virtual_key_code_map
 from t9keyboard.t9_mode import T9Mode
 from t9keyboard.single_tap_keyboard_mode import SingleTapMode
@@ -21,18 +22,27 @@ class NumpadKeyboardMode(Enum):
 
 
 class NumpadKeyboard:
+    gui:Gui
     keyboard_mode: NumpadKeyboardMode
-
     single_tap_mode: SingleTapMode
     t9_mode: T9Mode
 
     def __init__(self):
-        # Default keyboard mode
+        self.gui=Gui()
+        # Default keyboard mode set to T9
         self.keyboard_mode = NumpadKeyboardMode.t9
-        self.t9_mode = T9Mode()
-
+        self.t9_mode = T9Mode(self.gui)
         # load single tap mode
         self.single_tap_mode = SingleTapMode()
+
+    def initialize_mainloop(self):
+        """
+        Initialize keyboard listener and gui mainloop
+        :return:
+        """
+        listener = numpad_listener(keyboard_actions.on_press_reaction)
+        self.gui.initialize_mainloop()
+        listener.stop()
 
     def on_press_reaction(self, keypad_button: KeyCode):
         """
@@ -72,6 +82,5 @@ class NumpadKeyboard:
 
 if __name__ == '__main__':
     keyboard_actions = NumpadKeyboard()
+    keyboard_actions.initialize_mainloop()
 
-    # keyboard.on_press(keyboard_actions.on_press_reaction)
-    numpad_listener(keyboard_actions.on_press_reaction)
