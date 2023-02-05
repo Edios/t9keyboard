@@ -1,4 +1,6 @@
 import operator
+import os
+import sys
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
@@ -94,13 +96,15 @@ class T9Mode:
     word_processor: WordProcessor
     key_sequence: List[NumpadKey]
 
-    def __init__(self, gui: Gui = None, custom_dictionary: Path = Path("dictionary/english"), trie: Trie = None):
+    def __init__(self, gui: Gui = None, custom_dictionary: Path = None, trie: Trie = None):
         # Initialize trie engine - use default one if not given
         self.gui = gui if gui else Gui()
         self.trie_engine = trie if trie else Trie()
         self.writer = KeyboardWriter()
         self.word_processor = WordProcessor()
         # Load dictionary - use default one if not given
+        custom_dictionary = Path(sys.path[0])
+        custom_dictionary = list(custom_dictionary.glob("*/dictionary/english"))[0]
         self.load_word_dictionary_from_folder(custom_dictionary)
         # Initialize default lists
         self.trie_search_results = SearchResults()
@@ -309,7 +313,7 @@ class T9Mode:
                 if self.key_sequence: self.key_sequence.clear()
                 self.word_processor.append_characters_to_queue(".")
                 self.word_processor.finish_queued_word()
-                #self.writer.backspace()
+                # self.writer.backspace()
                 self.writer.write(self.word_processor.get_last_word(), add_space=True)
             case None:
                 print("Special Key action not implemented")
