@@ -293,6 +293,7 @@ class T9Mode:
                     self.key_sequence.clear()
                 else:
                     self.writer.backspace()
+
                     try:
                         self.key_sequence.pop()
                     except IndexError:

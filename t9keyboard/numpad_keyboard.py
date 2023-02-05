@@ -76,6 +76,5 @@ class NumpadKeyboard:
 
 
 if __name__ == '__main__':
-
     keyboard_actions = NumpadKeyboard()
     keyboard_actions.initialize_mainloop()

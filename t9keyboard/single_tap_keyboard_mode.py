@@ -99,7 +99,7 @@ class SingleTapMode:
         elapsed_time = stop - start
         return True if elapsed_time <= datetime.timedelta(seconds=delta) else False
 
-    def handle_single_press_mode(self, mapped_key: SingleTapKey):
+    def handle_single_tap_mode(self, mapped_key: SingleTapKey):
         """
         #TODO: Add method description
         :param mapped_key:
