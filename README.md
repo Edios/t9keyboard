@@ -1,5 +1,5 @@
 
-# T9 Keyboard controled by Numpad keyboard.
+# T9 Keyboard controled by Numpad keyboard buttons.
 
 Project of T9 keyboard which is controlled by numpad keyboard buttons. 
 Application takes sequence of digits, convert it to corresponding letters combos and use Trie tree search to match sequence with potent words.
