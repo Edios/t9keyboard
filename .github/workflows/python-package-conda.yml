@@ -31,4 +31,4 @@ jobs:
     - name: Test with pytest
       run: |
         conda install pytest
-        DISPLAY=":0" pytest
+        DISPLAY=":1" pytest
