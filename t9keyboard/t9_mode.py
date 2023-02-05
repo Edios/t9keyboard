@@ -139,7 +139,7 @@ class T9Mode:
                 search_results.search_phrases.extend(found_phases)
             # Word list need to be sorted again
         search_results.sort()
-            # If length of phrases is below default phrase_counter_limit, change it to len of phrases list
+        # If length of phrases is below default phrase_counter_limit, change it to len of phrases list
         search_results.validate_phrase_counter_limit()
         return search_results
 
