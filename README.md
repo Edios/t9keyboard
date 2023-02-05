@@ -8,7 +8,7 @@ When user choose a phrase from available predicted words search results, it will
 ## Preview
 Using application to type in notepad:
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+![App Screenshot](https://github.com/Edios/t9keyboard/blob/main/usage_example_readme.gif)
 
 
 ## Instalation guide and system requirements
