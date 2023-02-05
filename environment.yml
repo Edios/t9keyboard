@@ -1,0 +1,7 @@
+name: base
+
+dependencies:
+  - python=3.10
+  - pytest
+  - pytest-mock
+  - pynput
