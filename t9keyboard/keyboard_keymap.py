@@ -1,5 +1,6 @@
 from enum import Enum
-#This is key map for keyboard libary
+
+# This is key map for keyboard libary
 numpad_character_keys_map = {
     '7': ['.', ',', '?', '!'],
     '8': ['a', 'b', 'c'],
@@ -17,11 +18,11 @@ numpad_keyboard_special_keys_map = {
     '-': ['switch_keyboard_mode'],
     ',': ['switch_letter'],
     'enter': ['enter'],
-    'num lock':['num lock']
+    'num lock': ['num lock']
 }
 
-#This is key map for pynput libary
-#Source for Virtual-Key Codes: https://cherrytree.at/misc/vk.htm
+# This is key map for pynput libary
+# Source for Virtual-Key Codes: https://cherrytree.at/misc/vk.htm
 numpad_key_to_virtual_key_code_map = {
     '103': "7",
     '104': "8",
@@ -36,10 +37,13 @@ numpad_key_to_virtual_key_code_map = {
     '107': '+',
     '109': '-',
     '110': ',',
-    '144':'num lock'
+    '144': 'num lock'
 }
+
+
 class SpecialAction(Enum):
     backspace = "backspace"
     switch_keyboard_mode = "switch_keyboard_mode"
     switch_letter = "switch_letter"
     space = "space"
+    seven = "."

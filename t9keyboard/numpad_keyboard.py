@@ -1,14 +1,9 @@
 from enum import Enum, auto
-from pathlib import Path
-
-import keyboard
-from keyboard import KeyboardEvent
 from pynput.keyboard import KeyCode
 
 from t9keyboard.display.gui import Gui
-from t9keyboard.engine.numpad_listener import numpad_listener, keyboard_listener
+from t9keyboard.engine.numpad_listener import numpad_listener
 from t9keyboard.keyboard_keymap import numpad_key_to_virtual_key_code_map
-from t9keyboard.t9_mode import T9Mode
 from t9keyboard.single_tap_keyboard_mode import SingleTapMode
 from t9keyboard.t9_mode import T9Mode
 
@@ -83,4 +78,3 @@ class NumpadKeyboard:
 if __name__ == '__main__':
     keyboard_actions = NumpadKeyboard()
     keyboard_actions.initialize_mainloop()
-
