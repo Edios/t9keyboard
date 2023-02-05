@@ -103,8 +103,7 @@ class T9Mode:
         self.writer = KeyboardWriter()
         self.word_processor = WordProcessor()
         # Load dictionary - use default one if not given
-        custom_dictionary = Path(sys.path[0])
-        custom_dictionary = list(custom_dictionary.glob("*/dictionary/english"))[0]
+        if not custom_dictionary: custom_dictionary = list(Path(sys.path[0]).glob("**/dictionary/english"))[0]
         self.load_word_dictionary_from_folder(custom_dictionary)
         # Initialize default lists
         self.trie_search_results = SearchResults()

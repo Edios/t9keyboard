@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import List, Tuple
 
 import pytest
@@ -86,9 +87,10 @@ def five_key() -> Tuple[KeyCode, NumpadKey]:
     return KeyCode(vk="101"), NumpadKey("5", ['j', 'k', 'l'], is_special_key=False)
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def numpad_keyboard():
-    os.chdir("../t9keyboard")
+    os.chdir("..")
+    sys.path.insert(0,os.getcwd())
     return NumpadKeyboard()
 
 
