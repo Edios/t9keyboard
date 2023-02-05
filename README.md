@@ -1,9 +1,9 @@
 
 # T9 Keyboard controled by Numpad keyboard.
 
-Project of T9 keyboard which is controled by numpad keyboard buttons. 
-Application takes sequence of digits, convert it to corresponding letters combos and use Trie tree search to match sequence with potentially words.
-When user choose a phrase from available predicted words search results, it will be written to screen. 
+Project of T9 keyboard which is controlled by numpad keyboard buttons. 
+Application takes sequence of digits, convert it to corresponding letters combos and use Trie tree search to match sequence with potent words.
+When user choose a phrase from available predicted words search results, it will be written to the screen. 
 
 ## Preview
 Using application to type in notepad:
