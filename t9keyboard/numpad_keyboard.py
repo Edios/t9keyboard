@@ -8,9 +8,6 @@ from t9keyboard.single_tap_keyboard_mode import SingleTapMode
 from t9keyboard.t9_mode import T9Mode
 
 
-# TODO: Print this graphics as helper
-
-
 class NumpadKeyboardMode(Enum):
     single_tap = auto()
     t9 = auto()

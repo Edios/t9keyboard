@@ -22,6 +22,11 @@ Using application to type in notepad:
   python run.py
 
 ```
+### Alternative solution:
+- Install module from pypi
+```bash
+  pip install t9keyboard
+```
 
 
 ## Key bindings
