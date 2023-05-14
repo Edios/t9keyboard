@@ -69,7 +69,7 @@ class Trie:
         node.word_end = True
         node.word_weight = weight
 
-    def dfs(self, node, prefix, store_variable: list, full_words_only=False):
+    def dfs(self, node: TrieNode, prefix: str, store_variable: list, full_words_only=False):
         """
         Depth-first traversal of the trie
         :param node: the node to start with
@@ -123,10 +123,10 @@ class Trie:
 
         if priority_words == search_result: return priority_words
         # Remove word which exists in dfs search results
-        search_result_words=[elem.word for elem in search_result]
+        search_result_words = [elem.word for elem in search_result]
         for search_phrase in priority_words:
             if search_phrase.word in search_result_words:
                 search_result.pop(search_result_words.index(search_phrase.word))
-        search_result=sorted(search_result, key=operator.attrgetter('weight'), reverse=True)
+        search_result = sorted(search_result, key=operator.attrgetter('weight'), reverse=True)
         priority_words.extend(search_result)
         return priority_words

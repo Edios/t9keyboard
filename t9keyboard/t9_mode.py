@@ -89,7 +89,7 @@ class T9Mode:
     trie_engine
     """
     trie_engine: Trie
-    trie_search_results: SearchResults
+    t9_search_results: SearchResults
     writer: KeyboardWriter
     word_processor: WordProcessor
     key_sequence: List[NumpadKey]
@@ -103,7 +103,7 @@ class T9Mode:
         # Load dictionary - use default one if not given
         self.load_word_dictionary_from_folder(custom_dictionary)
         # Initialize default lists
-        self.trie_search_results = SearchResults()
+        self.t9_search_results = SearchResults()
         self.key_sequence = []
         # Get available numpad keyboard keys
         self.available_keys = self.get_available_keyboard_keys()
@@ -125,7 +125,7 @@ class T9Mode:
 
         self.update_gui_labels()
 
-    def find_words(self, numbers: str) -> SearchResults:
+    def search_for_word_t9(self, numbers: str) -> SearchResults:
         """
         Take series of numbers, produces all possible letters combos of them and search for word in Trie.
         :param numbers: Input numbers with range from 1 to 9.
@@ -240,14 +240,14 @@ class T9Mode:
 
     def perform_alphabetical_key_action(self, mapped_key: NumpadKey):
         """
-        Append written alphabet key to key_sequence.
-        Then perform trie search with actual value of key_sequence.
+        Append the written alphabet key to key_sequence.
+        Then perform trie search with the actual value of key_sequence.
         SearchResults object from trie search will be stored in last_trie_search parameter.
         :param mapped_key: NumpadKey object
         """
         self.key_sequence.append(mapped_key)
         actual_key_sequence = self.get_actual_key_sequence_string()
-        self.trie_search_results = self.find_words(actual_key_sequence)
+        self.t9_search_results = self.search_for_word_t9(actual_key_sequence)
 
     def perform_special_key_action(self, mapped_key: NumpadKey):
         # WARNING: This requires python >3.10 (case matching method)
@@ -261,10 +261,10 @@ class T9Mode:
                 """
                 self.gui.switch_phrases_highlighted_element(0)
                 self.gui.apply_button_highlight(0, is_special_button=True)
-                if self.trie_search_results.is_empty():
+                if self.t9_search_results.is_empty():
                     print("Search result is empty, no word to be written")
                     return
-                chosen_phrase = self.trie_search_results.get_current_chosen_phrase().word
+                chosen_phrase = self.t9_search_results.get_current_chosen_phrase().word
                 self.word_processor.append_characters_to_queue(chosen_phrase)
                 self.word_processor.finish_queued_word()
                 self.key_sequence.clear()
@@ -275,9 +275,9 @@ class T9Mode:
                 Switch actual hint value if search result is not empty.
                 """
                 self.gui.apply_button_highlight(1, is_special_button=True)
-                if not self.trie_search_results.is_empty():
-                    self.trie_search_results.increase_phrase_counter()
-                    self.gui.switch_phrases_highlighted_element(self.trie_search_results.phrase_counter)
+                if not self.t9_search_results.is_empty():
+                    self.t9_search_results.increase_phrase_counter()
+                    self.gui.switch_phrases_highlighted_element(self.t9_search_results.phrase_counter)
             case SpecialAction.backspace:
                 """
                 Delete last character by sending backspace.
@@ -289,7 +289,7 @@ class T9Mode:
                         repeat_count=self.word_processor.count_last_word_length(count_additional_space=True)
                     )
                     self.word_processor.clear_word_processor_fields()
-                    self.trie_search_results.clear_searched_phrases()
+                    self.t9_search_results.clear_searched_phrases()
                     self.key_sequence.clear()
                 else:
                     self.writer.backspace()
@@ -327,9 +327,9 @@ class T9Mode:
         Do nothing if search results object .is_empty()
         :return:
         """
-        if not self.trie_search_results.is_empty():
-            self.gui.update_available_phrases(self.trie_search_results.get_top_phrases())
-            self.gui.update_actual_phrase(self.trie_search_results.get_current_chosen_phrase().word)
+        if not self.t9_search_results.is_empty():
+            self.gui.update_available_phrases(self.t9_search_results.get_top_phrases())
+            self.gui.update_actual_phrase(self.t9_search_results.get_current_chosen_phrase().word)
 
     def update_gui_press_digit_button(self, keypad_button_digit: str):
         """
