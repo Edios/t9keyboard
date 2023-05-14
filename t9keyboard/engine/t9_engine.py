@@ -1,9 +1,11 @@
 import operator
 from dataclasses import dataclass, field
+from itertools import product
 from pathlib import Path
 from typing import List
 
 from t9keyboard.engine.trie_engine import Trie, SearchPhrase
+from t9keyboard.keyboard_keymap import numpad_character_keys_map
 
 
 @dataclass
@@ -75,27 +77,10 @@ class SearchResults:
 class T9Engine:
     def __init__(self, trie_engine: Trie = None, dictionary_folder: Path = Path("dictionary/english")):
         self.trie_engine = trie_engine if trie_engine else Trie()
-        self.load_word_dictionary_from_folder(dictionary_folder)
+        dictionary_folder_path=Path(__file__).parent.parent / dictionary_folder
+        self.load_word_dictionary_from_folder(dictionary_folder_path)
 
-    def search_for_word_t9(self, numbers: str) -> SearchResults:
-        """
-        Take series of numbers, produces all possible letters combos of them and search for word in Trie.
-        :param numbers: Input numbers with range from 1 to 9.
-        :return: List of possible words to be constructed from input numbers
-        """
-        combo_list = self._product_combos(numbers)
-        search_results = SearchResults()
-        for single_phrase in combo_list:
-            found_phases = self.trie_engine.search_for_words_starts_with_prefix(single_phrase)
-            if found_phases:
-                search_results.search_phrases.extend(found_phases)
-            # Word list need to be sorted again
-        search_results.sort()
-        # If length of phrases is below default phrase_counter_limit, change it to len of phrases list
-        search_results.validate_phrase_counter_limit()
-        return search_results
-
-    def search_for_word_t9(self, numbers: str) -> SearchResults:
+    def find_words_from_numbers(self, numbers: str) -> SearchResults:
         """
         Take series of numbers, produces all possible letters combos of them and search for word in Trie.
         :param numbers: Input numbers with range from 1 to 9.

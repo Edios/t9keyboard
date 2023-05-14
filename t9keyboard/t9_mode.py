@@ -24,18 +24,18 @@ class T9Mode:
     t9_search_results: SearchResults
     writer: KeyboardWriter
     word_processor: WordProcessor
-    key_sequence: List[NumpadKey]
+    pressed_key_sequence: List[NumpadKey]
 
     def __init__(self, gui: Gui = None, trie: Trie = None):
 
         self.gui = gui if gui else Gui()
-        self.t9_engine= T9Engine(trie_engine=trie)
+        self.t9_engine = T9Engine(trie_engine=trie)
         self.writer = KeyboardWriter()
         self.word_processor = WordProcessor()
 
         # Initialize default lists
         self.t9_search_results = SearchResults()
-        self.key_sequence = []
+        self.pressed_key_sequence = []
         # Get available numpad keyboard keys
         self.available_keys = self.get_available_keyboard_keys()
 
@@ -55,7 +55,6 @@ class T9Mode:
             self.perform_alphabetical_key_action(mapped_key)
 
         self.update_gui_labels()
-
 
     # TODO: This method can be unified with single tap mode one
     @staticmethod
@@ -94,9 +93,9 @@ class T9Mode:
         SearchResults object from trie search will be stored in last_trie_search parameter.
         :param mapped_key: NumpadKey object
         """
-        self.key_sequence.append(mapped_key)
+        self.pressed_key_sequence.append(mapped_key)
         actual_key_sequence = self.get_actual_key_sequence_string()
-        self.t9_search_results = self.search_for_word_t9(actual_key_sequence)
+        self.t9_search_results = self.t9_engine.find_words_from_numbers(actual_key_sequence)
 
     def perform_special_key_action(self, mapped_key: NumpadKey):
         # WARNING: This requires python >3.10 (case matching method)
@@ -116,7 +115,7 @@ class T9Mode:
                 chosen_phrase = self.t9_search_results.get_current_chosen_phrase().word
                 self.word_processor.append_characters_to_queue(chosen_phrase)
                 self.word_processor.finish_queued_word()
-                self.key_sequence.clear()
+                self.pressed_key_sequence.clear()
                 self.writer.write(self.word_processor.get_last_word(), add_space=True)
 
             case SpecialAction.switch_letter:
@@ -133,18 +132,18 @@ class T9Mode:
                 If whole word was just typed, delete it by repeating backspace key, remove that word from finished_words 
                 """
                 self.gui.apply_button_highlight(2, is_special_button=True)
-                if not self.word_processor.queued_word and self.word_processor.finished_words and self.key_sequence:
+                if not self.word_processor.queued_word and self.word_processor.finished_words and self.pressed_key_sequence:
                     self.writer.backspace(
                         repeat_count=self.word_processor.count_last_word_length(count_additional_space=True)
                     )
                     self.word_processor.clear_word_processor_fields()
                     self.t9_search_results.clear_searched_phrases()
-                    self.key_sequence.clear()
+                    self.pressed_key_sequence.clear()
                 else:
                     self.writer.backspace()
 
                     try:
-                        self.key_sequence.pop()
+                        self.pressed_key_sequence.pop()
                     except IndexError:
                         print("KeySequence is empty. ")
             case SpecialAction.seven:
@@ -155,10 +154,10 @@ class T9Mode:
                 As a simplified version - this key will only use dot.
                 """
                 self.gui.apply_button_highlight(0, is_special_button=False)
-                if self.key_sequence: self.key_sequence.clear()
+                if self.pressed_key_sequence: self.pressed_key_sequence.clear()
                 self.word_processor.append_characters_to_queue(".")
                 self.word_processor.finish_queued_word()
-                #self.writer.backspace()
+                # self.writer.backspace()
                 self.writer.write(self.word_processor.get_last_word(), add_space=True)
             case None:
                 print("Special Key action not implemented")
@@ -168,7 +167,7 @@ class T9Mode:
         Loop through self.key_sequence and get digit from every NumpadKey object.
         :return: String with digits from key sequence
         """
-        return "".join([num.keypad_button for num in self.key_sequence])
+        return "".join([num.keypad_button for num in self.pressed_key_sequence])
 
     def update_gui_labels(self):
         """
