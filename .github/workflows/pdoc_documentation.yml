@@ -28,8 +28,8 @@ jobs:
         run: pdoc --version;pwd
       #Doc builder
       - name: Generate pdoc documentation
-        working-directory: ./
-        run: pdoc -o docs/ t9keyboard 
+        #working-directory: ./
+        run: cd ..;pwd;pdoc -o docs/ t9keyboard 
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
