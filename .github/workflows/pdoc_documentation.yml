@@ -25,7 +25,7 @@ jobs:
         run: pip install -r requirements.txt
       #Doc builder
       - name: Generate pdoc documentation
-        run: pdoc t9keyboard --html -o docs
+        run: pdoc -o docs/ --html t9keyboard 
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
