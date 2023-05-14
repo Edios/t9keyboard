@@ -8,9 +8,6 @@ from t9keyboard.single_tap_keyboard_mode import SingleTapMode
 from t9keyboard.t9_mode import T9Mode
 
 
-# TODO: Print this graphics as helper
-
-
 class NumpadKeyboardMode(Enum):
     single_tap = auto()
     t9 = auto()
@@ -35,7 +32,7 @@ class NumpadKeyboard:
         Initialize keyboard listener and gui mainloop
         :return:
         """
-        listener = numpad_listener(keyboard_actions.on_press_reaction)
+        listener = numpad_listener(self.on_press_reaction)
         self.gui.initialize_mainloop()
         listener.stop()
 
@@ -73,8 +70,3 @@ class NumpadKeyboard:
         if key in numpad_key_to_virtual_key_code_map.keys():
             return numpad_key_to_virtual_key_code_map[key]
         raise Exception(f"Key not found in known buttons map: {key}")
-
-
-if __name__ == '__main__':
-    keyboard_actions = NumpadKeyboard()
-    keyboard_actions.initialize_mainloop()
