@@ -24,12 +24,12 @@ jobs:
       - name: Instal repository requirements
         run: pip install -r requirements.txt
       #DEBUG
-      - name: DEBUG
-        run: pdoc --version;pwd
       #Doc builder
       - name: Generate pdoc documentation
         #working-directory: ./
-        run: pdoc -o docs /home/runner/work/t9keyboard
+        run: pdoc -o docs /home/runner/work/t9keyboard/t9keyboard
+      - name: DEBUG
+        run: ls /docs;ls
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
