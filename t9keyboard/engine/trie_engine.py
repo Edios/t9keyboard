@@ -10,7 +10,9 @@ class SearchPhrase:
     exact_search_word: bool = field(default=False)
 
     def __post_init__(self):
-        # Add +1 word weight if dfs search marked it as exact_search_word
+        """
+        Add +1 word weight if dfs search marked it as exact_search_word
+        """
         if self.exact_search_word:
             self.weight += 1
 
@@ -18,7 +20,6 @@ class SearchPhrase:
         return self.word
 
 
-# Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
 class TrieNode:
     """
     Single node of Trie structure
@@ -34,6 +35,9 @@ class TrieNode:
 class Trie:
     """
     Main Trie object.
+
+    Refactored Trie implementation based on tutorial from:
+        https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
     """
 
     def __init__(self):
