@@ -21,10 +21,11 @@ jobs:
           python-version: '3.10'
 
       #Requirements
-      - run: pip install -r requirements.txt
+      - name: Instal repository requirements
+        run: pip install -r requirements.txt
       #Doc builder
-      - run: pdoc t9keyboard --html --force -o docs
-
+      - name: Generate pdoc documentation
+        run: pdoc t9keyboard --html -o docs
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
