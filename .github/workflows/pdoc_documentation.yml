@@ -27,7 +27,7 @@ jobs:
       #Doc builder
       - name: Generate pdoc documentation
         #working-directory: ./
-        run: cd /home/runner/work/t9keyboard;pdoc -o docs /home/runner/work/t9keyboard/t9keyboard
+        run: PATH=$PATH:/home/runner/work/t9keyboard;export PATH;pdoc -o docs /home/runner/work/t9keyboard/t9keyboard
       - name: DEBUG
         run: ls /docs;ls
       - uses: actions/upload-pages-artifact@v1
