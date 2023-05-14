@@ -29,7 +29,7 @@ jobs:
       #Doc builder
       - name: Generate pdoc documentation
         #working-directory: ./
-        run: cd ..;pwd;ls;pdoc -o docs/ /home/runner/work/t9keyboard
+        run: pdoc -o docs /home/runner/work/t9keyboard
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
