@@ -10,7 +10,9 @@ class SearchPhrase:
     exact_search_word: bool = field(default=False)
 
     def __post_init__(self):
-        # Add +1 word weight if dfs search marked it as exact_search_word
+        """
+        Add +1 word weight if dfs search marked it as exact_search_word
+        """
         if self.exact_search_word:
             self.weight += 1
 
@@ -18,7 +20,6 @@ class SearchPhrase:
         return self.word
 
 
-# Refactored Trie implementation based on: https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
 class TrieNode:
     """
     Single node of Trie structure
@@ -34,6 +35,9 @@ class TrieNode:
 class Trie:
     """
     Main Trie object.
+
+    Refactored Trie implementation based on tutorial from:
+        https://albertauyeung.github.io/2020/06/15/python-trie.html/#how-does-a-trie-work
     """
 
     def __init__(self):
@@ -69,7 +73,7 @@ class Trie:
         node.word_end = True
         node.word_weight = weight
 
-    def dfs(self, node, prefix, store_variable: list, full_words_only=False):
+    def dfs(self, node: TrieNode, prefix: str, store_variable: list, full_words_only=False):
         """
         Depth-first traversal of the trie
         :param node: the node to start with
@@ -123,10 +127,10 @@ class Trie:
 
         if priority_words == search_result: return priority_words
         # Remove word which exists in dfs search results
-        search_result_words=[elem.word for elem in search_result]
+        search_result_words = [elem.word for elem in search_result]
         for search_phrase in priority_words:
             if search_phrase.word in search_result_words:
                 search_result.pop(search_result_words.index(search_phrase.word))
-        search_result=sorted(search_result, key=operator.attrgetter('weight'), reverse=True)
+        search_result = sorted(search_result, key=operator.attrgetter('weight'), reverse=True)
         priority_words.extend(search_result)
         return priority_words
