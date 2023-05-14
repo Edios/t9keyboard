@@ -23,9 +23,12 @@ jobs:
       #Requirements
       - name: Instal repository requirements
         run: pip install -r requirements.txt
+      #DEBUG
+      - name: DEBUG
+        run: pdoc -v 
       #Doc builder
       - name: Generate pdoc documentation
-        run: pdoc -o docs/ --html t9keyboard 
+        run: pdoc -o docs/ t9keyboard 
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
