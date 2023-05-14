@@ -25,9 +25,10 @@ jobs:
         run: pip install -r requirements.txt
       #DEBUG
       - name: DEBUG
-        run: pdoc --version 
+        run: pdoc --version;pwd
       #Doc builder
       - name: Generate pdoc documentation
+        working-directory: ./
         run: pdoc -o docs/ t9keyboard 
       - uses: actions/upload-pages-artifact@v1
         with:
