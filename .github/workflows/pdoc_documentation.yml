@@ -23,7 +23,7 @@ jobs:
       #Requirements
       - run: pip install -r requirements.txt
       #Doc builder
-      - run: pdoc -o docs
+      - run: pdoc t9keyboard --html --force -o docs
 
       - uses: actions/upload-pages-artifact@v1
         with:
