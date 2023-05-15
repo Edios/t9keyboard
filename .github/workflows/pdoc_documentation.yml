@@ -26,7 +26,7 @@ jobs:
       #Doc builder
       - name: Generate pdoc documentation
         #working-directory: ./
-        run: python /home/runner/work/t9keyboard/pdoc_generate.py generate
+        run: python pdoc_generate.py generate
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/api
