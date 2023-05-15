@@ -23,16 +23,13 @@ jobs:
       #Requirements
       - name: Instal repository requirements
         run: pip install -r requirements.txt
-      #DEBUG
       #Doc builder
       - name: Generate pdoc documentation
         #working-directory: ./
-        run: PATH=$PATH:/home/runner/work/t9keyboard;export PATH;pdoc -o docs /home/runner/work/t9keyboard/t9keyboard
-      - name: DEBUG
-        run: ls /docs;ls
+        run: python /home/runner/work/t9keyboard/pdoc_generate.py
       - uses: actions/upload-pages-artifact@v1
         with:
-          path: docs/
+          path: docs/api
 
   # Deploy the artifact to GitHub pages.
   # This is a separate job so that only actions/deploy-pages has the necessary permissions.
